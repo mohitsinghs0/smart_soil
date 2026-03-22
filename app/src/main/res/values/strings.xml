@@ -1,3 +1,139 @@
 <resources>
-    <string name="app_name">smart_soil</string>
+    <string name="app_name">Digital SmartSoil</string>
+    <string name="app_tagline">Smart soil health prediction from a single photo</string>
+
+    <!-- Common Strings -->
+    <string name="loading">Loading...</string>
+    <string name="error">Error</string>
+    <string name="success">Success</string>
+    <string name="retry">Retry</string>
+    <string name="back">Back</string>
+    <string name="close">Close</string>
+    <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="cancel">Cancel</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="message">Message</string>
+
+    <!-- Auth Screens -->
+    <string name="login_title">Login</string>
+    <string name="login_welcome_back">Welcome Back</string>
+    <string name="login_tagline">Login to Digital SmartSoil</string>
+    <string name="login_continue_with_google">Continue with Google</string>
+    <string name="login_or_separator">or</string>
+    <string name="login_hint_email">Enter email</string>
+    <string name="login_hint_password">Enter password</string>
+    <string name="login_button">Login</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="new_user_register">New user? Register</string>
+    <string name="have_account">Already have an account? Login</string>
+    <string name="register_title">Register</string>
+    <string name="register_create_account">Create Account</string>
+    <string name="register_tagline">Join Digital SmartSoil</string>
+    <string name="register_hint_full_name">Enter full name</string>
+    <string name="register_mobile_optional">Mobile Number (optional)</string>
+    <string name="register_hint_mobile">Enter mobile number</string>
+    <string name="register_hint_password">Create password (min 6 chars)</string>
+    <string name="register_button">Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="full_name">Full Name</string>
+    <string name="mobile">Mobile Number</string>
+    <string name="gender">Gender</string>
+    <string name="gender_male">Male</string>
+    <string name="gender_female">Female</string>
+    <string name="gender_other">Other</string>
+
+    <!-- Dashboard Screen -->
+    <string name="my_farms">My Farms</string>
+    <string name="welcome">Welcome, %s!</string>
+    <string name="add_farm">Add Farm</string>
+    <string name="no_farms">No farms yet. Add your first farm!</string>
+
+    <!-- Farm Card & Details -->
+    <string name="farm_name">Farm Name</string>
+    <string name="village">Village</string>
+    <string name="city">City</string>
+    <string name="district">District</string>
+    <string name="current_crop">Current Crop</string>
+    <string name="test">Test</string>
+    <string name="history">History</string>
+
+    <!-- Add Farm Screen -->
+    <string name="add_new_farm">Add New Farm</string>
+    <string name="farm_name_hint">e.g. Main Plot</string>
+    <string name="current_crop_optional">Current Crop (optional)</string>
+    <string name="crop_name_hint">e.g. Soybean</string>
+    <string name="village_name_hint">Village name</string>
+    <string name="location_note">Location coordinates are auto-detected from village/GPS data.</string>
+    <string name="save_farm">Save Farm</string>
+
+    <!-- Soil Test Screen -->
+    <string name="new_soil_test">New Soil Test</string>
+    <string name="select_farm">Select Farm</string>
+    <string name="soil_test_tube_image">Soil/Test-tube Image</string>
+    <string name="select_from_gallery">Select from Gallery</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="predict_soil_health">Predict Soil Health</string>
+    <string name="predicted_soil_parameters">Predicted Soil Parameters</string>
+    <string name="soc_soil_organic_carbon">SOC (Soil Organic Carbon)</string>
+    <string name="nitrogen_n">Nitrogen (N)</string>
+    <string name="phosphorus_p">Phosphorus (P)</string>
+    <string name="potassium_k">Potassium (K)</string>
+    <string name="ph_level">pH Level</string>
+    <string name="recommended_crops">Recommended Crops</string>
+    <string name="best">Best</string>
+    <string name="alternative">Alternative</string>
+    <string name="save_result">Save Result</string>
+    <string name="view_history">View History</string>
+    <string name="empty_prediction_message">Select a farm &amp; upload a soil image to get predictions</string>
+    <string name="soc">SOC (Soil Organic Carbon)</string>
+    <string name="nitrogen">Nitrogen (N)</string>
+    <string name="phosphorus">Phosphorus (P)</string>
+    <string name="potassium">Potassium (K)</string>
+
+    <!-- History Screen -->
+    <string name="soil_test_history">Soil Test History</string>
+    <string name="export_pdf">Export PDF</string>
+    <string name="soil_parameter_trends">Soil Parameter Trends</string>
+    <string name="no_tests">No soil tests yet</string>
+    <string name="all_farms">All Farms</string>
+
+    <!-- Profile Screen -->
+    <string name="my_profile">My Profile</string>
+    <string name="profile">Profile</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="logout">Logout</string>
+
+    <!-- About Screen -->
+    <string name="about">About</string>
+    <string name="about_digital_smartsoil">About Digital SmartSoil</string>
+    <string name="our_mission">Our Mission</string>
+    <string name="mission_text">To empower farmers across Maharashtra and India with smart, accessible soil health estimation using just a smartphone photo. By combining image analysis, geolocation data, and machine learning, we aim to make soil testing affordable and instant for every farmer.</string>
+    <string name="research_background">Research Background</string>
+    <string name="research_text">This app is part of an ongoing PhD research project focused on digital soil analysis. Data has been collected from farms across Maharashtra, trained using MobileNetV2-based deep learning models, and validated against standard laboratory soil test results from ICAR.</string>
+    <string name="mission">Our Mission</string>
+
+    <!-- Contact Screen -->
+    <string name="contact">Contact</string>
+    <string name="contact_us">Contact Us</string>
+    <string name="send_a_query">Send a Query</string>
+    <string name="your_name">Your name</string>
+    <string name="your_query_or_feedback">Your query or feedback...</string>
+    <string name="submit_query">Submit Query</string>
+    <string name="call_support">Call Support</string>
+
+    <!-- Status Indicators -->
+    <string name="low">Low</string>
+    <string name="medium">Medium</string>
+    <string name="high">High</string>
+
+    <!-- Units -->
+    <string name="percent">%</string>
+    <string name="kg_per_hectare">kg/ha</string>
+    <string name="degrees">°C</string>
 </resources>

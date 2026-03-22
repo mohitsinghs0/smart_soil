@@ -1,10 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Brand Colors -->
+    <color name="brand_green">#386641</color>
+    <color name="brand_gold">#BC8C2C</color>
+    <color name="brand_brown">#6A5837</color>
+    <color name="brand_light_beige">#FDFCF7</color>
+    <color name="brand_dark_green">#1A3A1A</color>
+
+    <!-- Aliases for common names used in layouts -->
+    <color name="primary">@color/brand_green</color>
+    <color name="accent">@color/brand_gold</color>
+    <color name="card_bg">@color/brand_light_beige</color>
+    <color name="bg_primary">@color/brand_light_beige</color>
+    <color name="bg_secondary">#F0F5F0</color>
+    <color name="border_color">#DDDDDD</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#222222</color>
+    <color name="text_secondary">#666666</color>
+    <color name="text_hint">#AAAAAA</color>
+    <color name="text_tertiary">#999999</color>
+    <color name="text_on_brand_green">#FFFFFF</color>
+
+    <!-- UI Component Colors -->
+    <color name="bg_gradient_start">#1A3A1A</color>
+    <color name="bg_gradient_end">#6A5837</color>
+    <color name="card_background">#FDFCF7</color>
+    <color name="weather_card_background">#F0F5F0</color>
+    <color name="button_google_background">#FFFFFF</color>
+    <color name="button_google_stroke">#DDDDDD</color>
+
+    <!-- Status Colors -->
+    <color name="status_low">#EF4444</color>
+    <color name="status_medium">#EAB308</color>
+    <color name="status_high">#22C55E</color>
+
+    <!-- Standard Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Fallbacks for legacy themes -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
 </resources>
