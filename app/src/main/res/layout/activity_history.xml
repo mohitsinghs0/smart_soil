@@ -28,6 +28,8 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="16dp"
+        android:paddingBottom="110dp"
+        android:clipToPadding="false"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <!-- Header row -->
@@ -98,4 +100,11 @@
             tools:itemCount="2"/>
 
     </LinearLayout>
+
+    <include
+        layout="@layout/layout_custom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

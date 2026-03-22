@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,16 +12,23 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.smart_soil.R;
 import com.example.smart_soil.adapters.FarmAdapter;
 import com.example.smart_soil.models.Farm;
+import com.example.smart_soil.services.RetrofitClient;
+import com.example.smart_soil.utils.NavigationHelper;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import timber.log.Timber;
+
 public class DashboardActivity extends BaseActivity {
 
     private RecyclerView farmsRecyclerView;
     private FarmAdapter farmAdapter;
-    private List<Farm> farmList;
+    private List<Farm> farmList = new ArrayList<>();
     private TextView welcomeMessage;
     private FloatingActionButton fabAddFarm;
     private LinearLayout emptyStateContainer;
@@ -38,20 +44,51 @@ public class DashboardActivity extends BaseActivity {
         fabAddFarm = findViewById(R.id.fab_add_farm);
         emptyStateContainer = findViewById(R.id.empty_state_container);
 
-        // Set welcome message (using placeholder name)
-        welcomeMessage.setText(getString(R.string.welcome, "Mohit Singh"));
+        // Set welcome message
+        String userName = prefsManager.getUserName();
+        welcomeMessage.setText(getString(R.string.welcome, userName));
 
         // Setup RecyclerView
         farmsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        
-        // Create dummy data
-        createDummyFarms();
-
-        // Initialize and set adapter
         farmAdapter = new FarmAdapter(this, farmList);
         farmsRecyclerView.setAdapter(farmAdapter);
 
-        // Check for empty state
+        // Set click listener for FAB
+        fabAddFarm.setOnClickListener(v -> {
+            Intent intent = new Intent(DashboardActivity.this, AddFarmActivity.class);
+            startActivity(intent);
+        });
+
+        // Setup Custom Nav
+        NavigationHelper.setupCustomNav(this, -1);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadFarms();
+    }
+
+    private void loadFarms() {
+        RetrofitClient.getApiService().getFarms(getAuthToken()).enqueue(new Callback<List<Farm>>() {
+            @Override
+            public void onResponse(Call<List<Farm>> call, Response<List<Farm>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    farmList.clear();
+                    farmList.addAll(response.body());
+                    farmAdapter.notifyDataSetChanged();
+                    updateUI();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Farm>> call, Throwable t) {
+                Timber.e(t, "Load farms failure");
+            }
+        });
+    }
+
+    private void updateUI() {
         if (farmList.isEmpty()) {
             farmsRecyclerView.setVisibility(View.GONE);
             emptyStateContainer.setVisibility(View.VISIBLE);
@@ -59,21 +96,5 @@ public class DashboardActivity extends BaseActivity {
             farmsRecyclerView.setVisibility(View.VISIBLE);
             emptyStateContainer.setVisibility(View.GONE);
         }
-
-        // Set click listener for FAB
-        fabAddFarm.setOnClickListener(v -> {
-            Intent intent = new Intent(DashboardActivity.this, AddFarmActivity.class);
-            startActivity(intent);
-        });
-    }
-
-    private void createDummyFarms() {
-        farmList = new ArrayList<>();
-        
-        Farm farm1 = new Farm("Rice", "Kondhana", "Pune", "Maharashtra", "Rice", 18.5204, 73.8567);
-        farmList.add(farm1);
-        
-        Farm farm2 = new Farm("Soybean Plot", "Wakad", "Pune", "Maharashtra", "Soybean", 18.59, 73.75);
-        farmList.add(farm2);
     }
 }

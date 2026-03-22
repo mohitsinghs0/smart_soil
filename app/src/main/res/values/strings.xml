@@ -37,6 +37,7 @@
     <string name="register_mobile_optional">Mobile Number (optional)</string>
     <string name="register_hint_mobile">Enter mobile number</string>
     <string name="register_hint_password">Create password (min 6 chars)</string>
+    <string name="register_hint_confirm_password">Confirm your password</string>
     <string name="register_button">Register</string>
     <string name="email">Email</string>
     <string name="password">Password</string>

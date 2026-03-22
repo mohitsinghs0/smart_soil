@@ -9,13 +9,9 @@ import android.widget.Toast;
 
 import com.example.smart_soil.R;
 import com.example.smart_soil.requests.LoginRequest;
-import com.example.smart_soil.requests.AuthResponse;
-import com.example.smart_soil.services.ApiService;
-import com.example.smart_soil.services.RetrofitClient;
+import com.example.smart_soil.repository.UserRepository;
+import com.google.android.material.button.MaterialButton;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import timber.log.Timber;
 
 public class LoginActivity extends BaseActivity {
@@ -23,12 +19,17 @@ public class LoginActivity extends BaseActivity {
     private EditText emailInput, passwordInput;
     private Button loginButton;
     private TextView forgotPasswordLink, registerLink;
-    private com.google.android.material.button.MaterialButton googleButton;
+    private MaterialButton googleButton;
+    private UserRepository userRepository;
+    private boolean isLoggingIn = false;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        
+        // Initialize repository
+        userRepository = new UserRepository(this, prefsManager);
         
         // Initialize views
         emailInput = findViewById(R.id.input_email);
@@ -49,6 +50,11 @@ public class LoginActivity extends BaseActivity {
     }
     
     private void performLogin() {
+        if (isLoggingIn) {
+            Toast.makeText(this, "Login in progress...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
         
@@ -62,47 +68,51 @@ public class LoginActivity extends BaseActivity {
             Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
             return;
         }
-        
-        // Call API
-        loginButton.setEnabled(false);
-        ApiService apiService = RetrofitClient.getApiService();
-        LoginRequest request = new LoginRequest(email, password);
-        
-        apiService.login(request).enqueue(new Callback<AuthResponse>() {
-            @Override
-            public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
-                loginButton.setEnabled(true);
-                
-                if (response.isSuccessful() && response.body() != null) {
-                    AuthResponse authResponse = response.body();
-                    
-                    if (authResponse.success) {
-                        // Save auth data
-                        prefsManager.saveToken(authResponse.token);
-                        prefsManager.saveUserId(authResponse.user_id);
-                        prefsManager.saveUserName(authResponse.name);
-                        prefsManager.saveUserEmail(email);
-                        
-                        Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
-                        
-                        // Navigate to Dashboard
-                        Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        Toast.makeText(LoginActivity.this, authResponse.message, Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(LoginActivity.this, "Login failed. Try again.", Toast.LENGTH_SHORT).show();
-                    Timber.e("Login error: %s", response.message());
-                }
-            }
+
+        // Master Login Bypass for testing without backend
+        if (email.equals("abc@gmail.com") && password.equals("Mohit@5656")) {
+            prefsManager.saveUserName("Mohit");
+            prefsManager.saveUserEmail("abc@gmail.com");
+            prefsManager.saveToken("master_token_123");
+            prefsManager.saveUserId(1);
             
+            Toast.makeText(this, "Master Login successful!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, DashboardActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+        
+        // Disable button and show progress
+        isLoggingIn = true;
+        loginButton.setEnabled(false);
+        loginButton.setText("Logging in...");
+        
+        // Call repository to login
+        LoginRequest request = new LoginRequest(email, password);
+        userRepository.loginUser(request, new UserRepository.LoginCallback() {
             @Override
-            public void onFailure(Call<AuthResponse> call, Throwable t) {
-                loginButton.setEnabled(true);
-                Toast.makeText(LoginActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                Timber.e(t, "Login API error");
+            public void onSuccess(com.example.smart_soil.requests.AuthResponse authResponse) {
+                isLoggingIn = false;
+                runOnUiThread(() -> {
+                    Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                    
+                    // Navigate to Dashboard
+                    Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
+                    startActivity(intent);
+                    finish();
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                isLoggingIn = false;
+                runOnUiThread(() -> {
+                    loginButton.setEnabled(true);
+                    loginButton.setText("Login");
+                    Toast.makeText(LoginActivity.this, "Error: " + error, Toast.LENGTH_LONG).show();
+                    Timber.e("Login error: %s", error);
+                });
             }
         });
     }

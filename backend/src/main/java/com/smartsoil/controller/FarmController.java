@@ -23,7 +23,7 @@ public class FarmController {
 
     @GetMapping
     public ResponseEntity<List<Farm>> getFarms(@RequestHeader("Authorization") String token) {
-        String cleanToken = token.replace("Bearer ", "");
+        String cleanToken = token.replace("Bearer ", "").trim();
         Optional<User> userOpt = userRepository.findAll().stream()
                 .filter(u -> cleanToken.equals(u.getToken()))
                 .findFirst();
@@ -36,7 +36,7 @@ public class FarmController {
 
     @PostMapping
     public ResponseEntity<Farm> createFarm(@RequestHeader("Authorization") String token, @RequestBody Farm farm) {
-        String cleanToken = token.replace("Bearer ", "");
+        String cleanToken = token.replace("Bearer ", "").trim();
         Optional<User> userOpt = userRepository.findAll().stream()
                 .filter(u -> cleanToken.equals(u.getToken()))
                 .findFirst();
