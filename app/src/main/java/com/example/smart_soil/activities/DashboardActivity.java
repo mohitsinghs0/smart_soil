@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -78,12 +79,15 @@ public class DashboardActivity extends BaseActivity {
                     farmList.addAll(response.body());
                     farmAdapter.notifyDataSetChanged();
                     updateUI();
+                } else {
+                    Toast.makeText(DashboardActivity.this, "Failed to load farms", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<Farm>> call, Throwable t) {
                 Timber.e(t, "Load farms failure");
+                Toast.makeText(DashboardActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }

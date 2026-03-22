@@ -9,7 +9,8 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">10.0.2.2</domain>
         <domain includeSubdomains="true">localhost</domain>
-        <!-- Allow all local IP ranges for physical device testing -->
+        <!-- Allow local IP ranges for physical device testing -->
         <domain includeSubdomains="true">192.168.1.0/24</domain>
+        <domain includeSubdomains="true">192.168.0.0/24</domain>
     </domain-config>
 </network-security-config>

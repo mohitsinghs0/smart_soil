@@ -4,48 +4,65 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp">
+    android:paddingVertical="12dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp">
 
         <TextView
             android:id="@+id/parameter_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_primary"
             android:layout_alignParentStart="true"
-            tools:text="Nitrogen (N)"/>
+            android:layout_centerVertical="true"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="SOC (Soil Organic Carbon)" />
 
         <TextView
             android:id="@+id/parameter_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textStyle="bold"
-            android:layout_toStartOf="@id/parameter_value"
-            android:layout_marginEnd="8dp"
-            tools:textColor="@color/status_medium"
-            tools:text="Medium"/>
-
-        <TextView
-            android:id="@+id/parameter_value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/text_primary"
             android:layout_alignParentEnd="true"
-            tools:text="173.9kg/ha"/>
+            android:layout_centerVertical="true"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:background="@drawable/bg_status_high"
+            tools:text="High"
+            tools:textColor="@color/status_high" />
 
     </RelativeLayout>
 
-    <ProgressBar
-        android:id="@+id/parameter_progress"
-        style="?android:attr/progressBarStyleHorizontal"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="6dp"
-        android:layout_marginTop="8dp"
-        android:progressDrawable="@drawable/bg_progress_bar"
-        tools:progress="60" />
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ProgressBar
+            android:id="@+id/parameter_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="10dp"
+            android:layout_weight="1"
+            android:progressDrawable="@drawable/bg_progress_bar"
+            tools:progress="80" />
+
+        <TextView
+            android:id="@+id/parameter_value"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="1.58%" />
+
+    </LinearLayout>
 
 </LinearLayout>

@@ -1,10 +1,17 @@
 package com.example.smart_soil.adapters;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -12,10 +19,19 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smart_soil.R;
+import com.example.smart_soil.activities.BaseActivity;
+import com.example.smart_soil.activities.HistoryActivity;
+import com.example.smart_soil.activities.SoilTestActivity;
 import com.example.smart_soil.models.Farm;
+import com.example.smart_soil.services.RetrofitClient;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import timber.log.Timber;
 
 public class FarmAdapter extends RecyclerView.Adapter<FarmAdapter.FarmViewHolder> {
 
@@ -48,21 +64,110 @@ public class FarmAdapter extends RecyclerView.Adapter<FarmAdapter.FarmViewHolder
         holder.weatherWind.setText("9.4 km/h");
         holder.lastTestInfo.setText("Last test: 09/03/2026 • " + farm.crop_type);
 
-        // Click listeners
+        // Fixed Navigation for TEST button
         holder.testButton.setOnClickListener(v -> {
-            Toast.makeText(context, "Starting test for " + farm.name, Toast.LENGTH_SHORT).show();
-            // Intent to SoilTestActivity would go here
+            Intent intent = new Intent(context, SoilTestActivity.class);
+            intent.putExtra("farm_id", farm.id);
+            intent.putExtra("farm_name", farm.name);
+            context.startActivity(intent);
         });
 
+        // Fixed Navigation for History button
         holder.historyButton.setOnClickListener(v -> {
-            Toast.makeText(context, "Viewing history for " + farm.name, Toast.LENGTH_SHORT).show();
-            // Intent to HistoryActivity would go here
+            Intent intent = new Intent(context, HistoryActivity.class);
+            intent.putExtra("farm_id", farm.id);
+            context.startActivity(intent);
         });
 
+        // Popup Menu for Edit/Delete
         holder.moreButton.setOnClickListener(v -> {
-            // TODO: Implement popup menu for Edit/Delete
-            Toast.makeText(context, "More options for " + farm.name, Toast.LENGTH_SHORT).show();
+            PopupMenu popup = new PopupMenu(context, holder.moreButton);
+            popup.getMenuInflater().inflate(R.menu.menu_farm_options, popup.getMenu());
+            
+            popup.setOnMenuItemClickListener(item -> {
+                int id = item.getItemId();
+                if (id == R.id.action_edit) {
+                    showEditDialog(farm);
+                    return true;
+                } else if (id == R.id.action_delete) {
+                    deleteFarm(farm, position);
+                    return true;
+                }
+                return false;
+            });
+            popup.show();
         });
+    }
+
+    private void deleteFarm(Farm farm, int position) {
+        if (!(context instanceof BaseActivity)) return;
+        
+        String token = ((BaseActivity) context).getAuthToken();
+        
+        RetrofitClient.getApiService().deleteFarm(token, farm.id).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    farmList.remove(position);
+                    notifyItemRemoved(position);
+                    notifyItemRangeChanged(position, farmList.size());
+                    Toast.makeText(context, "Farm deleted successfully", Toast.LENGTH_SHORT).show();
+                    
+                    // If activity has an updateUI method, call it to show empty state if needed
+                    try {
+                        context.getClass().getMethod("updateUI").invoke(context);
+                    } catch (Exception ignored) {}
+                    
+                } else {
+                    Toast.makeText(context, "Failed to delete farm", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Timber.e(t, "Delete farm failure");
+                Toast.makeText(context, "Network error", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void showEditDialog(Farm farm) {
+        Dialog dialog = new Dialog(context);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_edit_farm);
+        
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+
+        EditText etName = dialog.findViewById(R.id.edit_farm_name);
+        EditText etCrop = dialog.findViewById(R.id.edit_current_crop);
+        EditText etCity = dialog.findViewById(R.id.edit_city);
+        EditText etDistrict = dialog.findViewById(R.id.edit_district);
+        EditText etVillage = dialog.findViewById(R.id.edit_village);
+        
+        MaterialButton btnSave = dialog.findViewById(R.id.btn_save);
+        MaterialButton btnCancel = dialog.findViewById(R.id.btn_cancel);
+        ImageView btnClose = dialog.findViewById(R.id.btn_close);
+
+        // Pre-fill data
+        etName.setText(farm.name);
+        etCrop.setText(farm.crop_type);
+        etCity.setText(farm.city);
+        etDistrict.setText(farm.district);
+        etVillage.setText(farm.village);
+
+        btnSave.setOnClickListener(v -> {
+            // Implement update logic if needed
+            Toast.makeText(context, "Update functionality coming soon!", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
     }
 
     @Override
