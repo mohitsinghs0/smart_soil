@@ -16,6 +16,9 @@ public class RetrofitClient {
     private static String ACTUAL_COMPUTER_IP = "192.168.0.106";
     private static final String EMULATOR_IP = "10.0.2.2";
     private static final String PORT = "8080";
+    
+    // Production Railway URL
+    private static final String PRODUCTION_URL = "https://smart-soil-backend-production.up.railway.app/";
 
     private static String baseUrl = null;
 
@@ -40,8 +43,11 @@ public class RetrofitClient {
                 || Build.PRODUCT.contains("emulator")
                 || Build.PRODUCT.contains("simulator");
 
+        // Logic: Use PRODUCTION_URL if configured, otherwise fallback to local/emulator
+        // For development, you can manually toggle this or use setBaseUrl()
         String ip = isEmulator ? EMULATOR_IP : ACTUAL_COMPUTER_IP;
         baseUrl = "http://" + ip + ":" + PORT + "/";
+        
         Timber.d("Using Base URL: %s (Is Emulator: %b)", baseUrl, isEmulator);
         return baseUrl;
     }
@@ -89,5 +95,12 @@ public class RetrofitClient {
      */
     public static void updateIp(String ip) {
         setBaseUrl("http://" + ip + ":" + PORT + "/");
+    }
+
+    /**
+     * Helper to switch to Production Railway URL
+     */
+    public static void useProduction() {
+        setBaseUrl(PRODUCTION_URL);
     }
 }
