@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 import androidx.core.content.ContextCompat;
 import com.example.smart_soil.R;
 import com.example.smart_soil.activities.*;
@@ -82,7 +81,12 @@ public class NavigationHelper {
 
         if (settingsBtn != null) {
             settingsBtn.setOnClickListener(v -> {
-                Toast.makeText(activity, "Settings coming soon!", Toast.LENGTH_SHORT).show();
+                if (activeId != R.id.btn_nav_settings) {
+                    Intent intent = new Intent(activity, SettingsActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                    activity.startActivity(intent);
+                    activity.overridePendingTransition(0, 0);
+                }
             });
         }
     }

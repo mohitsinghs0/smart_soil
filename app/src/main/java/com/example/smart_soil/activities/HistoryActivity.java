@@ -2,6 +2,7 @@ package com.example.smart_soil.activities;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -11,13 +12,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smart_soil.R;
 import com.example.smart_soil.adapters.HistoryAdapter;
+import com.example.smart_soil.models.Farm;
 import com.example.smart_soil.models.SoilTest;
+import com.example.smart_soil.services.RetrofitClient;
 import com.example.smart_soil.utils.NavigationHelper;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import timber.log.Timber;
 
 public class HistoryActivity extends BaseActivity {
 
@@ -25,6 +32,8 @@ public class HistoryActivity extends BaseActivity {
     private HistoryAdapter adapter;
     private Spinner farmSpinner;
     private MaterialButton exportPdfButton;
+    private List<Farm> farmList = new ArrayList<>();
+    private List<SoilTest> testList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,55 +45,106 @@ public class HistoryActivity extends BaseActivity {
         farmSpinner = findViewById(R.id.farm_spinner_history);
         exportPdfButton = findViewById(R.id.export_pdf_button);
 
-        // Setup spinner
-        setupFarmSpinner();
-
         // Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        loadHistoryData();
+        adapter = new HistoryAdapter(this, testList);
+        recyclerView.setAdapter(adapter);
+
+        // Load Farms
+        loadFarms();
 
         // Export PDF
         exportPdfButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Exporting to PDF...", Toast.LENGTH_SHORT).show();
+            if (testList.isEmpty()) {
+                Toast.makeText(this, "No data to export", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Exporting to PDF (Coming Soon)...", Toast.LENGTH_SHORT).show();
+                // TODO: Implement iTextPDF export
+            }
         });
 
         // Setup Custom Nav
         NavigationHelper.setupCustomNav(this, R.id.btn_nav_history);
+
+        // Handle Intent for specific farm
+        int farmId = getIntent().getIntExtra("farm_id", -1);
+        if (farmId != -1) {
+            // Logic to select this farm in spinner after it loads
+        }
+    }
+
+    private void loadFarms() {
+        RetrofitClient.getApiService().getFarms(getAuthToken()).enqueue(new Callback<List<Farm>>() {
+            @Override
+            public void onResponse(Call<List<Farm>> call, Response<List<Farm>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    farmList = response.body();
+                    setupFarmSpinner();
+                } else {
+                    Toast.makeText(HistoryActivity.this, "Failed to load farms", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Farm>> call, Throwable t) {
+                Timber.e(t, "Load farms failure");
+                Toast.makeText(HistoryActivity.this, "Network error", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void setupFarmSpinner() {
         List<String> farmNames = new ArrayList<>();
-        farmNames.add("All Farms");
-        farmNames.add("Rice - Kondhana");
-        farmNames.add("Soybean Plot - Wakad");
+        for (Farm farm : farmList) {
+            farmNames.add(farm.name);
+        }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, farmNames);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        farmSpinner.setAdapter(adapter);
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, farmNames);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        farmSpinner.setAdapter(spinnerAdapter);
+
+        farmSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                loadSoilTests(farmList.get(position).id);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // Auto-select farm if passed from intent
+        int targetFarmId = getIntent().getIntExtra("farm_id", -1);
+        if (targetFarmId != -1) {
+            for (int i = 0; i < farmList.size(); i++) {
+                if (farmList.get(i).id == targetFarmId) {
+                    farmSpinner.setSelection(i);
+                    break;
+                }
+            }
+        } else if (!farmList.isEmpty()) {
+            loadSoilTests(farmList.get(0).id);
+        }
     }
 
-    private void loadHistoryData() {
-        // Dummy data for history
-        List<SoilTest> dummyList = new ArrayList<>();
-        
-        SoilTest test1 = new SoilTest();
-        test1.test_date = "22/03/2026";
-        test1.soc = 1.58;
-        test1.nitrogen = 173.9;
-        test1.ph = 7.0;
-        test1.recommended_crops = Arrays.asList("Wheat", "Soybean", "Rice");
-        
-        SoilTest test2 = new SoilTest();
-        test2.test_date = "15/03/2026";
-        test2.soc = 1.01;
-        test2.nitrogen = 285.9;
-        test2.ph = 5.5;
-        test2.recommended_crops = Arrays.asList("Rice", "Cotton");
+    private void loadSoilTests(int farmId) {
+        RetrofitClient.getApiService().getSoilTests(getAuthToken(), farmId).enqueue(new Callback<List<SoilTest>>() {
+            @Override
+            public void onResponse(Call<List<SoilTest>> call, Response<List<SoilTest>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    testList.clear();
+                    testList.addAll(response.body());
+                    adapter.notifyDataSetChanged();
+                } else {
+                    Toast.makeText(HistoryActivity.this, "Failed to load history", Toast.LENGTH_SHORT).show();
+                }
+            }
 
-        dummyList.add(test1);
-        dummyList.add(test2);
-
-        adapter = new HistoryAdapter(this, dummyList);
-        recyclerView.setAdapter(adapter);
+            @Override
+            public void onFailure(Call<List<SoilTest>> call, Throwable t) {
+                Timber.e(t, "Load soil tests failure");
+                Toast.makeText(HistoryActivity.this, "Network error", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

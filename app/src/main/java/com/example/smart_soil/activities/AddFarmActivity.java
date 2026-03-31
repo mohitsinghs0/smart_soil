@@ -49,7 +49,7 @@ public class AddFarmActivity extends BaseActivity {
         }
 
         // Create Farm object
-        Farm farm = new Farm(farmName, village, city, district, crop, 0.0, 0.0);
+        Farm farm = new Farm(farmName, village, city, district, crop, 0.0, 0.0, 0.0);
         farm.user_id = prefsManager.getUserId();
 
         // Show loading state
@@ -67,7 +67,7 @@ public class AddFarmActivity extends BaseActivity {
                     Toast.makeText(AddFarmActivity.this, "Farm added successfully!", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
-                    Toast.makeText(AddFarmActivity.this, "Failed to add farm. Error: " + response.code(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AddFarmActivity.this, "Failed to add farm", Toast.LENGTH_SHORT).show();
                     Timber.e("Add farm error: %s", response.message());
                 }
             }
@@ -76,7 +76,7 @@ public class AddFarmActivity extends BaseActivity {
             public void onFailure(Call<Farm> call, Throwable t) {
                 saveFarmButton.setEnabled(true);
                 saveFarmButton.setText("Save Farm");
-                Toast.makeText(AddFarmActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(AddFarmActivity.this, "Network error", Toast.LENGTH_LONG).show();
                 Timber.e(t, "Add farm network failure");
             }
         });

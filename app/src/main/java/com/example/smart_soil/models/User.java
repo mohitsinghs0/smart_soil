@@ -8,6 +8,8 @@ public class User implements Serializable {
     public String email;
     public String mobile;
     public String gender;
+    public String token;
+    public boolean isActive;
     public long created_at;
 
     public User() {}

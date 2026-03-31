@@ -12,9 +12,15 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 
 import com.example.smart_soil.R;
-import com.example.smart_soil.repository.UserRepository;
+import com.example.smart_soil.models.User;
+import com.example.smart_soil.services.RetrofitClient;
 import com.example.smart_soil.utils.NavigationHelper;
 import com.google.android.material.button.MaterialButton;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import timber.log.Timber;
 
 public class ProfileActivity extends BaseActivity {
 
@@ -22,15 +28,11 @@ public class ProfileActivity extends BaseActivity {
     private EditText inputFullName, inputMobile;
     private Spinner spinnerGender;
     private MaterialButton saveChangesButton, logoutButton;
-    private UserRepository userRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
-
-        // Initialize repository
-        userRepository = new UserRepository(this, prefsManager);
 
         // Initialize views
         profileEmail = findViewById(R.id.profile_email);
@@ -46,13 +48,11 @@ public class ProfileActivity extends BaseActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerGender.setAdapter(adapter);
 
-        // Load current user data
-        loadUserData();
+        // Load profile from API
+        fetchUserProfile();
 
         // Set click listeners
-        saveChangesButton.setOnClickListener(v -> {
-            Toast.makeText(ProfileActivity.this, "Profile updated successfully (Local)", Toast.LENGTH_SHORT).show();
-        });
+        saveChangesButton.setOnClickListener(v -> updateProfile());
 
         logoutButton.setOnClickListener(v -> showLogoutConfirmation());
 
@@ -60,10 +60,78 @@ public class ProfileActivity extends BaseActivity {
         NavigationHelper.setupCustomNav(this, R.id.btn_nav_profile);
     }
 
-    private void loadUserData() {
-        profileEmail.setText(prefsManager.getUserEmail());
-        inputFullName.setText(prefsManager.getUserName());
-        inputMobile.setText("Not set");
+    private void fetchUserProfile() {
+        RetrofitClient.getApiService().getProfile(getAuthToken()).enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    User user = response.body();
+                    profileEmail.setText(user.email);
+                    inputFullName.setText(user.name);
+                    inputMobile.setText(user.mobile);
+                    
+                    if (user.gender != null) {
+                        ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) spinnerGender.getAdapter();
+                        int position = adapter.getPosition(user.gender);
+                        if (position >= 0) spinnerGender.setSelection(position);
+                    }
+                    
+                    // Update local prefs just in case
+                    prefsManager.saveUserName(user.name);
+                    prefsManager.saveUserEmail(user.email);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                Timber.e(t, "Fetch profile failure");
+                // Fallback to local data
+                profileEmail.setText(prefsManager.getUserEmail());
+                inputFullName.setText(prefsManager.getUserName());
+            }
+        });
+    }
+
+    private void updateProfile() {
+        String name = inputFullName.getText().toString().trim();
+        String mobile = inputMobile.getText().toString().trim();
+        String gender = spinnerGender.getSelectedItem().toString();
+
+        if (name.isEmpty()) {
+            inputFullName.setError("Name required");
+            return;
+        }
+
+        User updateRequest = new User();
+        updateRequest.name = name;
+        updateRequest.mobile = mobile;
+        updateRequest.gender = gender;
+
+        saveChangesButton.setEnabled(false);
+        saveChangesButton.setText("Saving...");
+
+        RetrofitClient.getApiService().updateProfile(getAuthToken(), updateRequest).enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                saveChangesButton.setEnabled(true);
+                saveChangesButton.setText("Save Changes");
+                if (response.isSuccessful() && response.body() != null) {
+                    User updated = response.body();
+                    prefsManager.saveUserName(updated.name);
+                    Toast.makeText(ProfileActivity.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(ProfileActivity.this, "Update failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                saveChangesButton.setEnabled(true);
+                saveChangesButton.setText("Save Changes");
+                Timber.e(t, "Update profile failure");
+                Toast.makeText(ProfileActivity.this, "Network error", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void showLogoutConfirmation() {
@@ -76,7 +144,7 @@ public class ProfileActivity extends BaseActivity {
     }
 
     private void performLogout() {
-        userRepository.clearAllUsers();
+        prefsManager.clearAll();
         Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

@@ -25,5 +25,14 @@ public class SoilTest {
     @Column(columnDefinition = "TEXT")
     private String recommendedCrops;
     
+    @Column(name = "overall_score")
+    private Integer overallScore;
+    
+    @Column(name = "report_summary", columnDefinition = "TEXT")
+    private String reportSummary;
+    
+    @Column(name = "ai_analysis_done")
+    private Boolean aiAnalysisDone = false;
+    
     private LocalDateTime testDate = LocalDateTime.now();
 }

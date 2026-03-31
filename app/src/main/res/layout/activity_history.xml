@@ -27,9 +27,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="16dp"
-        android:paddingBottom="110dp"
-        android:clipToPadding="false"
+        android:paddingTop="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <!-- Header row -->
@@ -96,6 +96,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:paddingBottom="100dp"
+            android:clipToPadding="false"
             tools:listitem="@layout/list_item_test_history"
             tools:itemCount="2"/>
 

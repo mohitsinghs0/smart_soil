@@ -37,10 +37,59 @@ public class SoilPredictionUtil {
         test.potassium = Math.round(test.potassium * 100.0) / 100.0;
         test.ph = Math.round(test.ph * 100.0) / 100.0;
         
+        // Calculate Overall Score (0-100)
+        test.overallScore = calculateOverallScore(test);
+        
         // Get recommendations
-        test.recommended_crops = getRecommendedCrops(test);
+        List<String> recommendations = getRecommendedCrops(test);
+        
+        // Join list into comma separated string (compatible with API 24)
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < recommendations.size(); i++) {
+            sb.append(recommendations.get(i));
+            if (i < recommendations.size() - 1) {
+                sb.append(",");
+            }
+        }
+        test.recommended_crops = sb.toString();
+        
+        test.reportSummary = generateSummary(test);
+        test.aiAnalysisDone = false;
         
         return test;
+    }
+
+    private static int calculateOverallScore(SoilTest test) {
+        double score = 0;
+        score += (test.soc / 2.0) * 20; // Max 2.0 SOC contributes 20 pts
+        score += (test.nitrogen / 300.0) * 20; // Max 300 N contributes 20 pts
+        score += (test.phosphorus / 50.0) * 20; // Max 50 P contributes 20 pts
+        score += (test.potassium / 400.0) * 20; // Max 400 K contributes 20 pts
+        
+        // pH Score (Ideal 6.5-7.5)
+        double phScore = 0;
+        if (test.ph >= 6.5 && test.ph <= 7.5) phScore = 20;
+        else if (test.ph >= 6.0 && test.ph <= 8.0) phScore = 15;
+        else phScore = 10;
+        score += phScore;
+
+        return (int) Math.min(100, score);
+    }
+
+    private static String generateSummary(SoilTest test) {
+        StringBuilder summary = new StringBuilder("Your soil health is ");
+        if (test.overallScore > 80) summary.append("Excellent! ");
+        else if (test.overallScore > 60) summary.append("Good. ");
+        else if (test.overallScore > 40) summary.append("Average. ");
+        else summary.append("Poor. Needs improvement. ");
+
+        summary.append("Key findings: ");
+        if (test.soc < SOC_LOW) summary.append("Organic Carbon is very low. ");
+        if (test.nitrogen < N_LOW) summary.append("Nitrogen deficiency detected. ");
+        if (test.ph < PH_LOW) summary.append("Soil is acidic. ");
+        else if (test.ph > PH_MED) summary.append("Soil is alkaline. ");
+        
+        return summary.toString();
     }
     
     /**

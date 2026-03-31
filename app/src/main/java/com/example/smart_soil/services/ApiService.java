@@ -1,15 +1,18 @@
 package com.example.smart_soil.services;
 
+import com.example.smart_soil.models.AIChatMessage;
+import com.example.smart_soil.models.AIChatSession;
 import com.example.smart_soil.models.Farm;
 import com.example.smart_soil.models.SoilTest;
+import com.example.smart_soil.models.User;
 import com.example.smart_soil.requests.AuthResponse;
 import com.example.smart_soil.requests.LoginRequest;
 import com.example.smart_soil.requests.RegisterRequest;
 
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -30,6 +33,12 @@ public interface ApiService {
     
     @POST("/api/auth/login")
     Call<AuthResponse> login(@Body LoginRequest request);
+
+    @GET("/api/auth/profile")
+    Call<User> getProfile(@Header("Authorization") String token);
+
+    @PUT("/api/auth/profile")
+    Call<User> updateProfile(@Header("Authorization") String token, @Body User user);
     
     // Farm Endpoints
     @GET("/api/farms")
@@ -53,15 +62,29 @@ public interface ApiService {
     Call<SoilTest> createSoilTest(
         @Header("Authorization") String token,
         @Part MultipartBody.Part image,
-        @Part("farm_id") RequestBody farmId,
-        @Part("soc") RequestBody soc,
-        @Part("nitrogen") RequestBody nitrogen,
-        @Part("phosphorus") RequestBody phosphorus,
-        @Part("potassium") RequestBody potassium,
-        @Part("ph") RequestBody ph,
-        @Part("recommended_crops") RequestBody recommendedCrops
+        @Part("farm_id") int farmId,
+        @Part("soc") double soc,
+        @Part("nitrogen") double nitrogen,
+        @Part("phosphorus") double phosphorus,
+        @Part("potassium") double potassium,
+        @Part("ph") double ph,
+        @Part("recommended_crops") String recommendedCrops,
+        @Part("overall_score") Integer overallScore
     );
     
     @DELETE("/api/soil-tests/{id}")
     Call<Void> deleteSoilTest(@Header("Authorization") String token, @Path("id") int testId);
+
+    // AI Chat Endpoints
+    @POST("/api/ai-chat/sessions")
+    Call<AIChatSession> createAIChatSession(@Header("Authorization") String token, @Body Map<String, Long> payload);
+
+    @GET("/api/ai-chat/sessions")
+    Call<List<AIChatSession>> getAIChatSessions(@Header("Authorization") String token);
+
+    @POST("/api/ai-chat/messages")
+    Call<AIChatMessage> sendAIChatMessage(@Header("Authorization") String token, @Body AIChatMessage message);
+
+    @GET("/api/ai-chat/sessions/{sessionId}/messages")
+    Call<List<AIChatMessage>> getAIChatMessages(@Header("Authorization") String token, @Path("sessionId") Long sessionId);
 }

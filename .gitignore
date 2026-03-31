@@ -13,3 +13,10 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Project specific
+backend/build/
+target/
+*.pdf
+app/build/
+.gradle/

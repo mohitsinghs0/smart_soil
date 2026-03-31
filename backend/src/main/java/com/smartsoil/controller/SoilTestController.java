@@ -1,7 +1,9 @@
 package com.smartsoil.controller;
 
+import com.smartsoil.entity.CropRecommendation;
 import com.smartsoil.entity.SoilTest;
 import com.smartsoil.entity.User;
+import com.smartsoil.repository.CropRecommendationRepository;
 import com.smartsoil.repository.SoilTestRepository;
 import com.smartsoil.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,25 +29,29 @@ public class SoilTestController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private CropRecommendationRepository cropRecommendationRepository;
+
     private final String UPLOAD_DIR = "uploads/";
 
     private Optional<User> getUserByToken(String token) {
+        if (token == null) return Optional.empty();
         String cleanToken = token.replace("Bearer ", "").trim();
         return userRepository.findByToken(cleanToken);
     }
 
     @GetMapping
     public ResponseEntity<List<SoilTest>> getSoilTests(
-            @RequestHeader("Authorization") String token,
-            @QueryParam("farm_id") Long farmId) {
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestParam("farm_id") Long farmId) {
         return getUserByToken(token)
                 .map(user -> ResponseEntity.ok(soilTestRepository.findByFarmId(farmId)))
                 .orElse(ResponseEntity.status(401).build());
     }
 
     @PostMapping
-    public ResponseEntity<SoilTest> createSoilTest(
-            @RequestHeader("Authorization") String token,
+    public ResponseEntity<?> createSoilTest(
+            @RequestHeader(value = "Authorization", required = false) String token,
             @RequestParam("farm_id") Long farmId,
             @RequestParam("soc") Double soc,
             @RequestParam("nitrogen") Double nitrogen,
@@ -53,39 +59,58 @@ public class SoilTestController {
             @RequestParam("potassium") Double potassium,
             @RequestParam("ph") Double ph,
             @RequestParam("recommended_crops") String recommendedCrops,
+            @RequestParam(value = "overall_score", required = false) Integer overallScore,
             @RequestParam(value = "image", required = false) MultipartFile image) {
 
-        return getUserByToken(token)
-                .map(user -> {
-                    SoilTest soilTest = new SoilTest();
-                    soilTest.setUserId(user.getId());
-                    soilTest.setFarmId(farmId);
-                    soilTest.setSoc(soc);
-                    soilTest.setNitrogen(nitrogen);
-                    soilTest.setPhosphorus(phosphorus);
-                    soilTest.setPotassium(potassium);
-                    soilTest.setPh(ph);
-                    soilTest.setRecommendedCrops(recommendedCrops);
+        Optional<User> userOpt = getUserByToken(token);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(401).body("Unauthorized: Invalid Token");
+        }
 
-                    if (image != null && !image.isEmpty()) {
-                        try {
-                            String fileName = UUID.randomUUID().toString() + "_" + image.getOriginalFilename();
-                            Path path = Paths.get(UPLOAD_DIR + fileName);
-                            Files.createDirectories(path.getParent());
-                            Files.write(path, image.getBytes());
-                            soilTest.setImagePath(fileName);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
+        User user = userOpt.get();
+        SoilTest soilTest = new SoilTest();
+        soilTest.setUserId(user.getId());
+        soilTest.setFarmId(farmId);
+        soilTest.setSoc(soc);
+        soilTest.setNitrogen(nitrogen);
+        soilTest.setPhosphorus(phosphorus);
+        soilTest.setPotassium(potassium);
+        soilTest.setPh(ph);
+        soilTest.setRecommendedCrops(recommendedCrops);
+        soilTest.setOverallScore(overallScore);
 
-                    return ResponseEntity.ok(soilTestRepository.save(soilTest));
-                })
-                .orElse(ResponseEntity.status(401).build());
+        if (image != null && !image.isEmpty()) {
+            try {
+                String fileName = UUID.randomUUID().toString() + "_" + image.getOriginalFilename();
+                Path path = Paths.get(UPLOAD_DIR + fileName);
+                Files.createDirectories(path.getParent());
+                Files.write(path, image.getBytes());
+                soilTest.setImagePath(fileName);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        SoilTest savedTest = soilTestRepository.save(soilTest);
+
+        // Save detailed crop recommendations
+        if (recommendedCrops != null && !recommendedCrops.isEmpty()) {
+            String[] crops = recommendedCrops.split(",");
+            for (int i = 0; i < crops.length; i++) {
+                CropRecommendation recommendation = new CropRecommendation();
+                recommendation.setSoilTestId(savedTest.getId());
+                recommendation.setCropName(crops[i].trim());
+                recommendation.setPriorityRank(i + 1);
+                // Default season could be set or extracted if provided in a specific format
+                cropRecommendationRepository.save(recommendation);
+            }
+        }
+
+        return ResponseEntity.ok(savedTest);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSoilTest(@RequestHeader("Authorization") String token, @PathVariable Long id) {
+    public ResponseEntity<Void> deleteSoilTest(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable Long id) {
         return getUserByToken(token)
                 .map(user -> {
                     Optional<SoilTest> testOpt = soilTestRepository.findById(id);

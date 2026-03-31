@@ -11,10 +11,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
     
-    // Updated with your Mac's IP: 192.168.0.111
-    private static final String ACTUAL_COMPUTER_IP = "192.168.0.111";
+    // Updated with your Mac's IP: 192.168.0.106
+    private static final String ACTUAL_COMPUTER_IP = "192.168.0.106";
     
     private static final String EMULATOR_IP = "10.0.2.2";
+
+    public static final String BASE_URL = getBaseUrl();
     
     private static String getBaseUrl() {
         boolean isEmulator = (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
@@ -57,7 +59,7 @@ public class RetrofitClient {
                 .create();
             
             retrofit = new Retrofit.Builder()
-                .baseUrl(getBaseUrl())
+                .baseUrl(BASE_URL)
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();

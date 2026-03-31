@@ -35,8 +35,19 @@
             android:textStyle="bold"
             app:layout_constraintStart_toEndOf="@id/soil_image"
             app:layout_constraintTop_toTopOf="@id/soil_image"
+            app:layout_constraintEnd_toStartOf="@id/score_label"
+            tools:text="Test #123" />
+
+        <TextView
+            android:id="@+id/score_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/brand_green"
+            android:textSize="18sp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:text="Rice" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="85%" />
 
         <TextView
             android:id="@+id/test_date"
@@ -58,7 +69,20 @@
             app:layout_constraintStart_toStartOf="@id/farm_name"
             app:layout_constraintTop_toBottomOf="@id/test_date"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:text="SOC: 1.01% • N: 285.9 • pH: 5.5 • Rice" />
+            tools:text="SOC: 1.01% • N: 285.9 • pH: 5.5" />
+
+        <TextView
+            android:id="@+id/crops_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/brand_green"
+            android:textSize="12sp"
+            android:textStyle="italic"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="@id/farm_name"
+            app:layout_constraintTop_toBottomOf="@id/test_values"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Wheat, Rice" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

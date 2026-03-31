@@ -87,7 +87,7 @@ public class FarmAdapter extends RecyclerView.Adapter<FarmAdapter.FarmViewHolder
             popup.setOnMenuItemClickListener(item -> {
                 int id = item.getItemId();
                 if (id == R.id.action_edit) {
-                    showEditDialog(farm);
+                    showEditDialog(farm, position);
                     return true;
                 } else if (id == R.id.action_delete) {
                     deleteFarm(farm, position);
@@ -131,7 +131,7 @@ public class FarmAdapter extends RecyclerView.Adapter<FarmAdapter.FarmViewHolder
         });
     }
 
-    private void showEditDialog(Farm farm) {
+    private void showEditDialog(Farm farm, int position) {
         Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_edit_farm);
@@ -159,9 +159,43 @@ public class FarmAdapter extends RecyclerView.Adapter<FarmAdapter.FarmViewHolder
         etVillage.setText(farm.village);
 
         btnSave.setOnClickListener(v -> {
-            // Implement update logic if needed
-            Toast.makeText(context, "Update functionality coming soon!", Toast.LENGTH_SHORT).show();
-            dialog.dismiss();
+            String name = etName.getText().toString().trim();
+            String crop = etCrop.getText().toString().trim();
+            String city = etCity.getText().toString().trim();
+            String district = etDistrict.getText().toString().trim();
+            String village = etVillage.getText().toString().trim();
+
+            if (name.isEmpty()) {
+                etName.setError("Name required");
+                return;
+            }
+
+            Farm updatedFarm = new Farm(name, village, city, district, crop, farm.latitude, farm.longitude, farm.area);
+            updatedFarm.id = farm.id;
+            updatedFarm.user_id = farm.user_id;
+
+            if (context instanceof BaseActivity) {
+                String token = ((BaseActivity) context).getAuthToken();
+                RetrofitClient.getApiService().updateFarm(token, farm.id, updatedFarm).enqueue(new Callback<Farm>() {
+                    @Override
+                    public void onResponse(Call<Farm> call, Response<Farm> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            farmList.set(position, response.body());
+                            notifyItemChanged(position);
+                            Toast.makeText(context, "Farm updated successfully", Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                        } else {
+                            Toast.makeText(context, "Update failed", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Farm> call, Throwable t) {
+                        Timber.e(t, "Update farm failure");
+                        Toast.makeText(context, "Network error", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
         });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());

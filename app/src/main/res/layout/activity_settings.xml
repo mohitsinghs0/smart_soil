@@ -24,6 +24,7 @@
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
                 android:src="@drawable/ic_sprout"
+                android:contentDescription="App Logo"
                 app:tint="@color/brand_gold" />
 
             <LinearLayout
@@ -40,6 +41,7 @@
                     android:layout_marginEnd="20dp"
                     android:src="@drawable/ic_export"
                     android:rotation="180"
+                    android:contentDescription="Logout"
                     app:tint="@color/white" />
 
                 <ImageView
@@ -47,6 +49,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_more_vertical"
+                    android:contentDescription="Menu"
                     app:tint="@color/white" />
             </LinearLayout>
 
@@ -78,12 +81,13 @@
                     android:layout_width="28dp"
                     android:layout_height="28dp"
                     android:src="@drawable/ic_phone"
+                    android:contentDescription="Contact Icon"
                     app:tint="#444444"
                     android:layout_marginEnd="12dp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Contact Us"
+                    android:text="@string/contact_us"
                     android:textColor="#222222"
                     android:textSize="26sp"
                     android:textStyle="bold" />
@@ -114,12 +118,13 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:src="@drawable/ic_send"
+                            android:contentDescription="Send Icon"
                             app:tint="@color/brand_green"
                             android:layout_marginEnd="10dp"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Send a Query"
+                            android:text="@string/send_a_query"
                             android:textColor="@color/brand_green"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
@@ -138,8 +143,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="55dp"
                         android:background="@drawable/bg_edit_text"
-                        android:hint="Your name"
+                        android:hint="@string/your_name"
                         android:inputType="textPersonName"
+                        android:autofillHints="name"
                         android:paddingHorizontal="16dp"
                         android:layout_marginBottom="20dp"/>
 
@@ -155,8 +161,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="55dp"
                         android:background="@drawable/bg_edit_text"
-                        android:hint="Mobile number"
+                        android:hint="@string/register_hint_mobile"
                         android:inputType="phone"
+                        android:autofillHints="phone"
                         android:paddingHorizontal="16dp"
                         android:layout_marginBottom="20dp"/>
 
@@ -172,8 +179,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="120dp"
                         android:background="@drawable/bg_edit_text"
-                        android:hint="Your query or feedback..."
+                        android:hint="@string/your_query_or_feedback"
                         android:inputType="textMultiLine"
+                        android:autofillHints="none"
                         android:gravity="top"
                         android:padding="16dp"
                         android:layout_marginBottom="24dp"/>
@@ -182,7 +190,7 @@
                         android:id="@+id/btn_submit"
                         android:layout_width="match_parent"
                         android:layout_height="55dp"
-                        android:text="Submit Query"
+                        android:text="@string/submit_query"
                         android:textAllCaps="false"
                         android:textSize="16sp"
                         app:backgroundTint="@color/brand_dark_green"
@@ -212,12 +220,13 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_phone"
+                        android:contentDescription="Phone Icon"
                         app:tint="#444444"
                         android:layout_marginEnd="12dp"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Call Support"
+                        android:text="@string/call_support"
                         android:textColor="#222222"
                         android:textSize="16sp"
                         android:textStyle="bold"/>

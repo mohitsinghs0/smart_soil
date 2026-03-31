@@ -17,6 +17,10 @@ public class Farm {
     private String city;
     private String district;
     private String cropType;
-    private Double latitude;
-    private Double longitude;
+    private Double lat;
+    private Double lng;
+    private Double area;
+    
+    @Column(name = "is_active")
+    private Boolean isActive = true;
 }

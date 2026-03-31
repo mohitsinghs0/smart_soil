@@ -23,6 +23,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:text="Smart Soil"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
                 <ImageView
                     android:id="@+id/iv_logout"
                     android:layout_width="24dp"
@@ -51,7 +60,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="100dp"
+        android:paddingBottom="120dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -139,40 +148,130 @@
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
-                    <FrameLayout
-                        android:id="@+id/upload_box"
+                    <!-- Standardized Image Preview -->
+                    <ImageView
+                        android:id="@+id/soil_image_preview"
                         android:layout_width="match_parent"
                         android:layout_height="220dp"
-                        android:background="@drawable/bg_upload_box">
+                        android:scaleType="centerCrop"
+                        android:visibility="gone"
+                        android:layout_marginBottom="12dp" />
 
-                        <ImageView
-                            android:id="@+id/upload_image_preview"
+                    <!-- Selection Options Container -->
+                    <LinearLayout
+                        android:id="@+id/selection_options_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Gallery Picker -->
+                        <FrameLayout
+                            android:id="@+id/upload_box"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:scaleType="centerCrop"
-                            android:visibility="gone" />
+                            android:layout_height="120dp"
+                            android:background="@drawable/bg_upload_box">
 
+                            <LinearLayout
+                                android:id="@+id/upload_placeholder"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center"
+                                android:orientation="vertical">
+
+                                <ImageView
+                                    android:layout_width="32dp"
+                                    android:layout_height="32dp"
+                                    android:src="@drawable/ic_gallery"
+                                    app:tint="@color/brand_brown" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:text="Select from Gallery"
+                                    android:textColor="@color/brand_brown" />
+                            </LinearLayout>
+                        </FrameLayout>
+
+                        <!-- Divider -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginBottom="12dp"
+                            android:background="#E0E0E0" />
+
+                        <!-- Recommended Badge -->
                         <LinearLayout
-                            android:id="@+id/upload_placeholder"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:orientation="vertical">
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:background="#E8F5E9"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:paddingTop="4dp"
+                            android:paddingBottom="4dp">
 
                             <ImageView
-                                android:layout_width="48dp"
-                                android:layout_height="48dp"
-                                android:src="@drawable/ic_gallery"
-                                app:tint="@color/brand_brown" />
+                                android:layout_width="14dp"
+                                android:layout_height="14dp"
+                                android:layout_marginEnd="4dp"
+                                android:src="@drawable/ic_target"
+                                app:tint="#2E7D32" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:text="Select from Gallery"
-                                android:textColor="@color/brand_brown" />
+                                android:text="Recommended"
+                                android:textColor="#2E7D32"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+
                         </LinearLayout>
-                    </FrameLayout>
+
+                        <!-- Camera Button -->
+                        <LinearLayout
+                            android:id="@+id/camera_box"
+                            android:layout_width="match_parent"
+                            android:layout_height="72dp"
+                            android:background="@drawable/bg_upload_box"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:layout_marginEnd="10dp"
+                                android:src="@drawable/ic_target"
+                                app:tint="#4CAF50" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Open Camera"
+                                    android:textColor="#1A1A1A"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Auto-adjusts quality for best prediction"
+                                    android:textColor="#9E9E9E"
+                                    android:textSize="11sp" />
+
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
