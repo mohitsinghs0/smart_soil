@@ -70,7 +70,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         }
 
         if (test.image_path != null && !test.image_path.isEmpty()) {
-            String imageUrl = RetrofitClient.BASE_URL + "uploads/" + test.image_path;
+            String imageUrl = RetrofitClient.getBaseUrl() + "uploads/" + test.image_path;
             Glide.with(context)
                     .load(imageUrl)
                     .placeholder(R.drawable.ic_sprout)

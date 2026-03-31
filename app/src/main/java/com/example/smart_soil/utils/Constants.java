@@ -1,9 +1,10 @@
 package com.example.smart_soil.utils;
 
+import com.example.smart_soil.services.RetrofitClient;
+
 public class Constants {
     // API Configuration
-    public static final String BASE_URL = "http://10.0.2.2:8080"; // Emulator
-    // For physical device, use: "http://192.168.x.x:8080"
+    public static final String BASE_URL = RetrofitClient.getBaseUrl();
     
     // Request/Response codes
     public static final int REQUEST_IMAGE_PICK = 1001;

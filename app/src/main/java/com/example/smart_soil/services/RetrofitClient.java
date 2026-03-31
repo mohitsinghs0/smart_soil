@@ -8,17 +8,21 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import timber.log.Timber;
 
 public class RetrofitClient {
     
-    // Updated with your Mac's IP: 192.168.0.106
-    private static final String ACTUAL_COMPUTER_IP = "192.168.0.106";
-    
+    // Default IP - This should match your computer's current local IP
+    private static String ACTUAL_COMPUTER_IP = "192.168.0.106";
     private static final String EMULATOR_IP = "10.0.2.2";
+    private static final String PORT = "8080";
 
-    public static final String BASE_URL = getBaseUrl();
-    
-    private static String getBaseUrl() {
+    private static String baseUrl = null;
+
+    public static String getBaseUrl() {
+        if (baseUrl != null) return baseUrl;
+
+        // Enhanced emulator detection
         boolean isEmulator = (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
                 || Build.FINGERPRINT.startsWith("generic")
                 || Build.FINGERPRINT.startsWith("unknown")
@@ -37,7 +41,9 @@ public class RetrofitClient {
                 || Build.PRODUCT.contains("simulator");
 
         String ip = isEmulator ? EMULATOR_IP : ACTUAL_COMPUTER_IP;
-        return "http://" + ip + ":8080/";
+        baseUrl = "http://" + ip + ":" + PORT + "/";
+        Timber.d("Using Base URL: %s (Is Emulator: %b)", baseUrl, isEmulator);
+        return baseUrl;
     }
 
     private static Retrofit retrofit = null;
@@ -49,9 +55,10 @@ public class RetrofitClient {
             
             OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
                 .build();
             
             Gson gson = new GsonBuilder()
@@ -59,7 +66,7 @@ public class RetrofitClient {
                 .create();
             
             retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(getBaseUrl())
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
@@ -71,26 +78,16 @@ public class RetrofitClient {
         return getClient().create(ApiService.class);
     }
 
-    public static void setBaseUrl(String baseUrl) {
-        retrofit = null;
-        final String newBase = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+    public static void setBaseUrl(String newUrl) {
+        baseUrl = newUrl.endsWith("/") ? newUrl : newUrl + "/";
+        retrofit = null; // Force recreation of Retrofit instance
+        Timber.i("Base URL manually updated to: %s", baseUrl);
+    }
 
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .build();
-
-        Gson gson = new GsonBuilder()
-            .setLenient()
-            .create();
-
-        retrofit = new Retrofit.Builder()
-            .baseUrl(newBase)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build();
+    /**
+     * Helper to update just the IP while keeping the default port
+     */
+    public static void updateIp(String ip) {
+        setBaseUrl("http://" + ip + ":" + PORT + "/");
     }
 }
