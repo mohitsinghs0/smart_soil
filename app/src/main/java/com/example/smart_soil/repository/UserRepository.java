@@ -13,6 +13,7 @@ import com.example.smart_soil.services.RetrofitClient;
 import com.example.smart_soil.utils.SharedPrefsManager;
 
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import retrofit2.Call;
@@ -123,9 +124,11 @@ public class UserRepository {
     private void handleFailure(Throwable t, ErrorListener listener) {
         Timber.e(t, "API Call Failed");
         if (t instanceof ConnectException) {
-            listener.onError("Cannot connect to server. Please check if the Server IP is correct and the backend is running.");
+            listener.onError("Cannot connect to server. Check your internet or if the Server IP is correct.");
         } else if (t instanceof SocketTimeoutException) {
-            listener.onError("Server connection timed out. Check your internet or server status.");
+            listener.onError("Server connection timed out. The server might be waking up or slow.");
+        } else if (t instanceof SocketException && t.getMessage().contains("reset")) {
+            listener.onError("Connection reset by server. This usually happens if the URL/Port is incorrect or the server is rejecting the request.");
         } else {
             listener.onError("Network error: " + t.getLocalizedMessage());
         }
