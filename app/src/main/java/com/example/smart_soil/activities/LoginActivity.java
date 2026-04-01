@@ -56,7 +56,7 @@ public class LoginActivity extends BaseActivity {
         registerLink.setOnClickListener(v ->
             startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
 
-        // Hidden feature: Long press logo to change Server IP
+        // Hidden feature: Long press logo to change Server IP/URL
         logo.setOnLongClickListener(v -> {
             showChangeIpDialog();
             return true;
@@ -66,22 +66,30 @@ public class LoginActivity extends BaseActivity {
     private void showChangeIpDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Server Configuration");
+        builder.setMessage("Enter full URL (https://...) or just the IP address.");
         
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_change_ip, null);
         EditText ipInput = view.findViewById(R.id.edit_ip);
-        // Pre-fill with current IP or host
-        String currentUrl = RetrofitClient.getBaseUrl();
-        ipInput.setText(currentUrl.replace("http://", "").replace(":8080/", ""));
+        
+        // Pre-fill with current URL
+        ipInput.setText(RetrofitClient.getBaseUrl());
         
         builder.setView(view);
         builder.setPositiveButton("Save", (dialog, which) -> {
-            String newIp = ipInput.getText().toString().trim();
-            if (!newIp.isEmpty()) {
-                String newBaseUrl = "http://" + newIp + ":8080/";
+            String input = ipInput.getText().toString().trim();
+            if (!input.isEmpty()) {
+                String newBaseUrl;
+                if (input.startsWith("http")) {
+                    newBaseUrl = input;
+                } else {
+                    // Assume it's an IP and use default port
+                    newBaseUrl = "http://" + input + ":8080/";
+                }
+                
                 RetrofitClient.setBaseUrl(newBaseUrl);
                 // Refresh repository with new client
                 userRepository = new UserRepository(this, prefsManager);
-                Toast.makeText(this, "Server IP updated to: " + newIp, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Server updated to: " + newBaseUrl, Toast.LENGTH_LONG).show();
             }
         });
         builder.setNegativeButton("Cancel", null);
@@ -99,17 +107,6 @@ public class LoginActivity extends BaseActivity {
             return;
         }
 
-        // Master Login Bypass
-        if (email.equals("abc@gmail.com") && password.equals("Mohit@5656")) {
-            prefsManager.saveUserName("Mohit");
-            prefsManager.saveUserEmail("abc@gmail.com");
-            prefsManager.saveToken("master_token_123");
-            prefsManager.saveUserId(1);
-            startActivity(new Intent(this, DashboardActivity.class));
-            finish();
-            return;
-        }
-        
         isLoggingIn = true;
         loginButton.setEnabled(false);
         loginButton.setText("Logging in...");
@@ -132,7 +129,8 @@ public class LoginActivity extends BaseActivity {
                 runOnUiThread(() -> {
                     loginButton.setEnabled(true);
                     loginButton.setText("Login");
-                    Toast.makeText(LoginActivity.this, "Connection Error: Check Server IP", Toast.LENGTH_LONG).show();
+                    // Show the specific error (e.g. 404 or connection refused)
+                    Toast.makeText(LoginActivity.this, error, Toast.LENGTH_LONG).show();
                     Timber.e("Login error: %s", error);
                 });
             }

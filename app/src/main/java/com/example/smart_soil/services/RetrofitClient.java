@@ -12,43 +12,45 @@ import timber.log.Timber;
 
 public class RetrofitClient {
     
-    // Default IP - This should match your computer's current local IP
-    private static String ACTUAL_COMPUTER_IP = "192.168.0.106";
-    private static final String EMULATOR_IP = "10.0.2.2";
-    private static final String PORT = "8080";
+    /**
+     * 🚀 TODO: REPLACE THIS URL WITH THE ONE FROM YOUR RAILWAY DASHBOARD
+     * Go to Railway -> Backend Service -> Settings -> Public Networking -> Copy Public URL
+     */
+    private static final String RAILWAY_URL = "https://smart-soil-backend-production.up.railway.app/";
     
-    // Production Railway URL
-    private static final String PRODUCTION_URL = "https://smart-soil-backend-production.up.railway.app/";
+    // Local development fallbacks
+    private static final String EMULATOR_IP = "10.0.2.2";
+    private static final String DEFAULT_COMPUTER_IP = "192.168.0.106";
+    private static final String PORT = "8080";
 
     private static String baseUrl = null;
 
     public static String getBaseUrl() {
         if (baseUrl != null) return baseUrl;
 
-        // Enhanced emulator detection
-        boolean isEmulator = (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
-                || Build.FINGERPRINT.startsWith("generic")
-                || Build.FINGERPRINT.startsWith("unknown")
-                || Build.HARDWARE.contains("goldfish")
-                || Build.HARDWARE.contains("ranchu")
-                || Build.MODEL.contains("google_sdk")
-                || Build.MODEL.contains("Emulator")
-                || Build.MODEL.contains("Android SDK built for x86")
-                || Build.MANUFACTURER.contains("Genymotion")
-                || Build.PRODUCT.contains("sdk_google")
-                || Build.PRODUCT.contains("google_sdk")
-                || Build.PRODUCT.contains("sdk")
-                || Build.PRODUCT.contains("sdk_x86")
-                || Build.PRODUCT.contains("vbox86p")
-                || Build.PRODUCT.contains("emulator")
-                || Build.PRODUCT.contains("simulator");
+        // Force Production URL for testing
+        // Change to 'false' if you want to use your local computer server
+        boolean isProduction = true;
 
-        // Logic: Use PRODUCTION_URL if configured, otherwise fallback to local/emulator
-        // For development, you can manually toggle this or use setBaseUrl()
-        String ip = isEmulator ? EMULATOR_IP : ACTUAL_COMPUTER_IP;
-        baseUrl = "http://" + ip + ":" + PORT + "/";
+        if (isProduction) {
+            baseUrl = RAILWAY_URL;
+        } else {
+            boolean isEmulator = (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
+                    || Build.FINGERPRINT.startsWith("generic")
+                    || Build.FINGERPRINT.startsWith("unknown")
+                    || Build.MODEL.contains("google_sdk")
+                    || Build.MODEL.contains("Emulator");
+
+            String ip = isEmulator ? EMULATOR_IP : DEFAULT_COMPUTER_IP;
+            baseUrl = "http://" + ip + ":" + PORT + "/";
+        }
         
-        Timber.d("Using Base URL: %s (Is Emulator: %b)", baseUrl, isEmulator);
+        // Ensure URL ends with /
+        if (!baseUrl.endsWith("/")) {
+            baseUrl += "/";
+        }
+        
+        Timber.d("Using Base URL: %s", baseUrl);
         return baseUrl;
     }
 
@@ -61,9 +63,9 @@ public class RetrofitClient {
             
             OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
-                .writeTimeout(15, TimeUnit.SECONDS)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true)
                 .build();
             
@@ -86,21 +88,7 @@ public class RetrofitClient {
 
     public static void setBaseUrl(String newUrl) {
         baseUrl = newUrl.endsWith("/") ? newUrl : newUrl + "/";
-        retrofit = null; // Force recreation of Retrofit instance
+        retrofit = null;
         Timber.i("Base URL manually updated to: %s", baseUrl);
-    }
-
-    /**
-     * Helper to update just the IP while keeping the default port
-     */
-    public static void updateIp(String ip) {
-        setBaseUrl("http://" + ip + ":" + PORT + "/");
-    }
-
-    /**
-     * Helper to switch to Production Railway URL
-     */
-    public static void useProduction() {
-        setBaseUrl(PRODUCTION_URL);
     }
 }

@@ -24,4 +24,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "smart_soil"
+include(":app")
 include(":backend")
