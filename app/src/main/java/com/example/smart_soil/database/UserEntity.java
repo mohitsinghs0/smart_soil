@@ -9,13 +9,14 @@ public class UserEntity {
     @PrimaryKey(autoGenerate = true)
     public int id;
     
-    public int server_id;  // ID from server
+    public String server_id;  // ID from Supabase (UUID)
     public String name;
     public String email;
     public String mobile;
     public String gender;
-    public String password;  // Store hashed password (optional for local use)
-    public String token;     // Auth token from server
+    public String password;
+    public String token;     // Access Token from Supabase
+    public String refresh_token; // Refresh Token
     public long created_at;
     public long last_login;
 

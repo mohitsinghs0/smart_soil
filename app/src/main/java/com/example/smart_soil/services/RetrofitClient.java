@@ -1,97 +1,140 @@
 package com.example.smart_soil.services;
 
-import android.os.Build;
+import android.content.Context;
+import com.example.smart_soil.requests.AuthResponse;
+import com.example.smart_soil.utils.SharedPrefsManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import okhttp3.Interceptor;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import timber.log.Timber;
 
 public class RetrofitClient {
-    
-    /**
-     * ✅ UPDATED: The domain from your Railway screenshot
-     * It must be the Public Domain for the BACKEND SERVICE, not the MySQL one.
-     */
-    private static final String RAILWAY_URL = "https://mysql-production-e753.up.railway.app/";
-    
-    private static final String EMULATOR_IP = "10.0.2.2";
-    private static final String DEFAULT_COMPUTER_IP = "192.168.0.106";
-    private static final String PORT = "8080";
 
-    private static String baseUrl = null;
+    private static volatile Retrofit retrofit = null;
+    private static ApiService apiService = null;
+    private static AuthApiService authApiService = null;
 
-    public static String getBaseUrl() {
-        if (baseUrl != null) return baseUrl;
-
-        // Set to true to use Railway
-        boolean isProduction = true;
-
-        if (isProduction) {
-            baseUrl = RAILWAY_URL;
-        } else {
-            boolean isEmulator = (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
-                    || Build.FINGERPRINT.startsWith("generic")
-                    || Build.FINGERPRINT.startsWith("unknown")
-                    || Build.MODEL.contains("google_sdk")
-                    || Build.MODEL.contains("Emulator");
-
-            String ip = isEmulator ? EMULATOR_IP : DEFAULT_COMPUTER_IP;
-            baseUrl = "http://" + ip + ":" + PORT + "/";
-        }
-        
-        if (!baseUrl.endsWith("/")) {
-            baseUrl += "/";
-        }
-        
-        return baseUrl;
+    private RetrofitClient() {
     }
 
-    private static Retrofit retrofit = null;
-    
-    public static Retrofit getClient() {
+    public static Retrofit getClient(Context context) {
         if (retrofit == null) {
-            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-            
-            OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .addInterceptor(loggingInterceptor)
-                .addInterceptor(chain -> {
-                    Request request = chain.request().newBuilder()
-                            .addHeader("Connection", "close")
-                            .addHeader("Accept", "application/json")
+            synchronized (RetrofitClient.class) {
+                if (retrofit == null) {
+                    SharedPrefsManager prefsManager = new SharedPrefsManager(context);
+
+                    HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+                    logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+                    OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                            .addInterceptor(logging)
+                            .addInterceptor(chain -> {
+                                Request original = chain.request();
+                                Request.Builder builder = original.newBuilder()
+                                        .header("apikey", SupabaseConfig.ANON_KEY)
+                                        .header("Prefer", "return=representation");
+                                
+                                String token = prefsManager.getToken();
+                                if (token != null && !token.isEmpty()) {
+                                    builder.header("Authorization", "Bearer " + token);
+                                } else {
+                                    builder.header("Authorization", "Bearer " + SupabaseConfig.ANON_KEY);
+                                }
+                                return chain.proceed(builder.build());
+                            })
+                            .authenticator((route, response) -> {
+                                if (response.code() == 401) {
+                                    String refreshToken = prefsManager.getRefreshToken();
+                                    if (refreshToken != null) {
+                                        AuthResponse newAuth = refreshAccessTokenSync(refreshToken);
+                                        if (newAuth != null) {
+                                            prefsManager.saveToken(newAuth.accessToken);
+                                            prefsManager.saveRefreshToken(newAuth.refreshToken);
+                                            return response.request().newBuilder()
+                                                    .header("Authorization", "Bearer " + newAuth.accessToken)
+                                                    .build();
+                                        } else {
+                                            // Optional: Broadcast logout or clear prefs
+                                            prefsManager.clearAll();
+                                        }
+                                    }
+                                }
+                                return null;
+                            })
+                            .connectTimeout(15, TimeUnit.SECONDS)
+                            .readTimeout(15, TimeUnit.SECONDS)
+                            .writeTimeout(15, TimeUnit.SECONDS)
+                            .retryOnConnectionFailure(true)
                             .build();
-                    return chain.proceed(request);
-                })
-                .connectTimeout(60, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS)
-                .writeTimeout(60, TimeUnit.SECONDS)
-                .retryOnConnectionFailure(true)
-                .build();
-            
-            Gson gson = new GsonBuilder().setLenient().create();
-            
-            retrofit = new Retrofit.Builder()
-                .baseUrl(getBaseUrl())
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build();
+
+                    Gson gson = new GsonBuilder()
+                            .setLenient()
+                            .create();
+
+                    retrofit = new Retrofit.Builder()
+                            .baseUrl(SupabaseConfig.BASE_URL)
+                            .client(okHttpClient)
+                            .addConverterFactory(GsonConverterFactory.create(gson))
+                            .build();
+                }
+            }
         }
         return retrofit;
     }
-    
-    public static ApiService getApiService() {
-        return getClient().create(ApiService.class);
+
+    private static AuthResponse refreshAccessTokenSync(String refreshToken) {
+        OkHttpClient client = new OkHttpClient();
+        JsonObject jsonBody = new JsonObject();
+        jsonBody.addProperty("refresh_token", refreshToken);
+        
+        RequestBody body = RequestBody.create(
+                jsonBody.toString(),
+                MediaType.get("application/json; charset=utf-8")
+        );
+
+        Request request = new Request.Builder()
+                .url(SupabaseConfig.BASE_URL + "auth/v1/token?grant_type=refresh_token")
+                .post(body)
+                .header("apikey", SupabaseConfig.ANON_KEY)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (response.isSuccessful() && response.body() != null) {
+                return new Gson().fromJson(response.body().string(), AuthResponse.class);
+            }
+        } catch (IOException e) {
+            Timber.e(e, "Token refresh failed");
+        }
+        return null;
     }
 
-    public static void setBaseUrl(String newUrl) {
-        if (!newUrl.startsWith("http")) newUrl = "https://" + newUrl;
-        baseUrl = newUrl.endsWith("/") ? newUrl : newUrl + "/";
-        retrofit = null;
-        Timber.i("Base URL manually updated to: %s", baseUrl);
+    public static ApiService getApiService(Context context) {
+        if (apiService == null) {
+            apiService = getClient(context).create(ApiService.class);
+        }
+        return apiService;
+    }
+
+    public static AuthApiService getAuthApiService(Context context) {
+        if (authApiService == null) {
+            authApiService = getClient(context).create(AuthApiService.class);
+        }
+        return authApiService;
+    }
+
+    // Keep for potential legacy use, but it's better to use SupabaseConfig
+    public static String getBaseUrl() {
+        return SupabaseConfig.BASE_URL;
     }
 }

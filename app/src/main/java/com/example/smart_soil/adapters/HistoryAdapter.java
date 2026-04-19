@@ -81,7 +81,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, AIChatActivity.class);
-            intent.putExtra("soil_test_id", test.id);
+            // Fix: Pass ID as Long explicitly
+            intent.putExtra("soil_test_id", (long) test.id);
             context.startActivity(intent);
         });
     }
@@ -106,3 +107,5 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         }
     }
 }
+
+

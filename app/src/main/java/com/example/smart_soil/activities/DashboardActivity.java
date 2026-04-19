@@ -3,102 +3,98 @@ package com.example.smart_soil.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
-
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.smart_soil.R;
 import com.example.smart_soil.adapters.FarmAdapter;
-import com.example.smart_soil.models.Farm;
-import com.example.smart_soil.services.RetrofitClient;
+import com.example.smart_soil.database.FarmEntity;
+import com.example.smart_soil.databinding.ActivityDashboardBinding;
 import com.example.smart_soil.utils.NavigationHelper;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import timber.log.Timber;
+import com.example.smart_soil.viewmodels.FarmViewModel;
 
 public class DashboardActivity extends BaseActivity {
 
-    private RecyclerView farmsRecyclerView;
+    private ActivityDashboardBinding binding;
+    private FarmViewModel viewModel;
     private FarmAdapter farmAdapter;
-    private List<Farm> farmList = new ArrayList<>();
-    private TextView welcomeMessage;
-    private FloatingActionButton fabAddFarm;
-    private LinearLayout emptyStateContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dashboard);
+        binding = ActivityDashboardBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        // Initialize views
-        welcomeMessage = findViewById(R.id.welcome_message);
-        farmsRecyclerView = findViewById(R.id.farms_recycler_view);
-        fabAddFarm = findViewById(R.id.fab_add_farm);
-        emptyStateContainer = findViewById(R.id.empty_state_container);
+        viewModel = new ViewModelProvider(this).get(FarmViewModel.class);
 
-        // Set welcome message
-        String userName = prefsManager.getUserName();
-        welcomeMessage.setText(getString(R.string.welcome, userName));
+        setupUI();
+        observeViewModel();
+        
+        NavigationHelper.setupCustomNav(this, -1);
+    }
 
-        // Setup RecyclerView
-        farmsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        farmAdapter = new FarmAdapter(this, farmList);
-        farmsRecyclerView.setAdapter(farmAdapter);
+    private void setupUI() {
+        binding.welcomeMessage.setText(getString(R.string.welcome, prefsManager.getUserName()));
 
-        // Set click listener for FAB
-        fabAddFarm.setOnClickListener(v -> {
-            Intent intent = new Intent(DashboardActivity.this, AddFarmActivity.class);
-            startActivity(intent);
+        binding.farmsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        farmAdapter = new FarmAdapter(new FarmAdapter.OnFarmClickListener() {
+            @Override
+            public void onFarmClick(FarmEntity farm) {}
+
+            @Override
+            public void onTestClick(FarmEntity farm) {
+                Intent intent = new Intent(DashboardActivity.this, SoilTestActivity.class);
+                intent.putExtra("farm_id", farm.getId());
+                intent.putExtra("farm_name", farm.getName());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onHistoryClick(FarmEntity farm) {
+                Intent intent = new Intent(DashboardActivity.this, HistoryActivity.class);
+                intent.putExtra("farm_id", farm.getId());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onEditClick(FarmEntity farm) {
+                Intent intent = new Intent(DashboardActivity.this, AddFarmActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("edit_mode", true);
+                intent.putExtra("farm_id", farm.getId());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onDeleteClick(FarmEntity farm) {
+                viewModel.deleteFarm(farm);
+                Toast.makeText(DashboardActivity.this, "Farm deleted successfully", Toast.LENGTH_SHORT).show();
+            }
+        });
+        binding.farmsRecyclerView.setAdapter(farmAdapter);
+
+        binding.fabAddFarm.setOnClickListener(v -> {
+            startActivity(new Intent(DashboardActivity.this, AddFarmActivity.class));
+        });
+    }
+
+    private void observeViewModel() {
+        viewModel.getAllFarms().observe(this, farms -> {
+            if (farms == null || farms.isEmpty()) {
+                binding.farmsRecyclerView.setVisibility(View.GONE);
+                binding.emptyStateContainer.setVisibility(View.VISIBLE);
+            } else {
+                binding.farmsRecyclerView.setVisibility(View.VISIBLE);
+                binding.emptyStateContainer.setVisibility(View.GONE);
+                farmAdapter.submitList(farms);
+            }
         });
 
-        // Setup Custom Nav
-        NavigationHelper.setupCustomNav(this, -1);
+        viewModel.refreshFarms();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        loadFarms();
-    }
-
-    private void loadFarms() {
-        RetrofitClient.getApiService().getFarms(getAuthToken()).enqueue(new Callback<List<Farm>>() {
-            @Override
-            public void onResponse(Call<List<Farm>> call, Response<List<Farm>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    farmList.clear();
-                    farmList.addAll(response.body());
-                    farmAdapter.notifyDataSetChanged();
-                    updateUI();
-                } else {
-                    Toast.makeText(DashboardActivity.this, "Failed to load farms", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Farm>> call, Throwable t) {
-                Timber.e(t, "Load farms failure");
-                Toast.makeText(DashboardActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    private void updateUI() {
-        if (farmList.isEmpty()) {
-            farmsRecyclerView.setVisibility(View.GONE);
-            emptyStateContainer.setVisibility(View.VISIBLE);
-        } else {
-            farmsRecyclerView.setVisibility(View.VISIBLE);
-            emptyStateContainer.setVisibility(View.GONE);
-        }
+        viewModel.refreshFarms();
     }
 }

@@ -1,8 +1,8 @@
 plugins {
-    id("org.springframework.boot") version "3.2.3"
-    id("io.spring.dependency-management") version "1.1.7"
-    kotlin("jvm") version "1.9.20"
-    kotlin("plugin.spring") version "1.9.20"
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.dependency.management)
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.spring)
 }
 
 group = "com.smartsoil"
@@ -14,35 +14,24 @@ repositories {
 }
 
 dependencies {
-    // Spring Boot Starters
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
     
-    // Database
+    // MySQL Connector
     runtimeOnly("com.mysql:mysql-connector-j:8.3.0")
     
-    // Utils
-    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    
-    // Lombok (optional)
+    // Lombok
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     
-    // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs += "-Xjsr305=strict"
-        jvmTarget = "17"
+    compilerOptions {
+        freeCompilerArgs.add("-Xjsr305=strict")
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
-}
-
-tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
-    archiveFileName.set("smart-soil-backend.jar")
 }

@@ -30,6 +30,9 @@ public interface FarmDao {
     @Query("SELECT * FROM farms WHERE id = :id")
     FarmEntity getFarmById(int id);
 
+    @Query("SELECT * FROM farms WHERE serverId = :serverId LIMIT 1")
+    FarmEntity getFarmByServerId(String serverId);
+
     @Query("DELETE FROM farms")
     void deleteAll();
 }

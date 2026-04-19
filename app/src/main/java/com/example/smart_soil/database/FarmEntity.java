@@ -9,17 +9,30 @@ public class FarmEntity {
     private int id;
     private String serverId; // ID from backend
     private String name;
-    private String location;
+    private String village;
+    private String city;
+    private String district;
+    private String state;
+    private String soilType;
+    private String cropType;
     private double latitude;
     private double longitude;
-    private String cropType;
+    private double area;
     private long createdAt;
     private boolean isSynced;
 
-    public FarmEntity(String name, String location, String cropType) {
+    public FarmEntity(String name, String village, String city, String district, String state, 
+                      String soilType, String cropType, double latitude, double longitude, double area) {
         this.name = name;
-        this.location = location;
+        this.village = village;
+        this.city = city;
+        this.district = district;
+        this.state = state;
+        this.soilType = soilType;
         this.cropType = cropType;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.area = area;
         this.createdAt = System.currentTimeMillis();
         this.isSynced = false;
     }
@@ -34,8 +47,23 @@ public class FarmEntity {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
+    public String getVillage() { return village; }
+    public void setVillage(String village) { this.village = village; }
+
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+
+    public String getDistrict() { return district; }
+    public void setDistrict(String district) { this.district = district; }
+
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
+
+    public String getSoilType() { return soilType; }
+    public void setSoilType(String soilType) { this.soilType = soilType; }
+
+    public String getCropType() { return cropType; }
+    public void setCropType(String cropType) { this.cropType = cropType; }
 
     public double getLatitude() { return latitude; }
     public void setLatitude(double latitude) { this.latitude = latitude; }
@@ -43,12 +71,17 @@ public class FarmEntity {
     public double getLongitude() { return longitude; }
     public void setLongitude(double longitude) { this.longitude = longitude; }
 
-    public String getCropType() { return cropType; }
-    public void setCropType(String cropType) { this.cropType = cropType; }
+    public double getArea() { return area; }
+    public void setArea(double area) { this.area = area; }
 
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
 
     public boolean isSynced() { return isSynced; }
     public void setSynced(boolean synced) { isSynced = synced; }
+
+    // Compatibility method for old code
+    public String getLocation() {
+        return village + ", " + district;
+    }
 }

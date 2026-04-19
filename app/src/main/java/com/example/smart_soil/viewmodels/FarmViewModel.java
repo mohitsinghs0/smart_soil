@@ -26,10 +26,14 @@ public class FarmViewModel extends AndroidViewModel {
     }
 
     public void refreshFarms() {
-        repository.getFarms();
+        repository.refreshFarms();
     }
 
     public void addFarm(FarmEntity farm) {
         repository.addFarm(farm);
+    }
+
+    public void deleteFarm(FarmEntity farm) {
+        repository.deleteFarm(farm);
     }
 }

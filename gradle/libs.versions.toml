@@ -1,5 +1,5 @@
 [versions]
-agp = "8.13.2"
+agp = "9.1.1"
 kotlin = "1.9.22"
 junit = "4.13.2"
 junitVersion = "1.1.5"
@@ -26,6 +26,8 @@ spring-boot-starter-test = { group = "org.springframework.boot", name = "spring-
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
 dependency-management = { id = "io.spring.dependency-management", version.ref = "dependencyManagement" }

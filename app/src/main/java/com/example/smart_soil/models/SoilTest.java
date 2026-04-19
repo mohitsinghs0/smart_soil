@@ -4,19 +4,13 @@ import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 
 public class SoilTest implements Serializable {
-    public int id;
+    public long id;
     
-    @SerializedName("farmId")
-    public int farm_id;
+    @SerializedName("user_id")
+    public String user_id;
     
-    @SerializedName("userId")
-    public int user_id;
-    
-    @SerializedName("testDate")
-    public String test_date;
-    
-    @SerializedName("imagePath")
-    public String image_path;
+    @SerializedName("farm_id")
+    public Long farm_id;
     
     public double soc;
     public double nitrogen;
@@ -24,29 +18,30 @@ public class SoilTest implements Serializable {
     public double potassium;
     public double ph;
     
-    @SerializedName("recommendedCrops")
+    @SerializedName("recommended_crops")
     public String recommended_crops;
 
-    @SerializedName("overallScore")
+    @SerializedName("overall_score")
     public Integer overallScore;
 
-    @SerializedName("reportSummary")
+    @SerializedName("image_url")
+    public String image_url;
+    
+    // Compatibility fields for legacy code
+    @SerializedName("test_date")
+    public String test_date;
+    
+    @SerializedName("image_path")
+    public String image_path;
+    
+    @SerializedName("report_summary")
     public String reportSummary;
-
-    @SerializedName("aiAnalysisDone")
+    
+    @SerializedName("ai_analysis_done")
     public Boolean aiAnalysisDone;
 
-    public SoilTest() {}
+    @SerializedName("created_at")
+    public String created_at;
 
-    public SoilTest(int farm_id, String image_path, double soc, double nitrogen, 
-                    double phosphorus, double potassium, double ph, String recommended_crops) {
-        this.farm_id = farm_id;
-        this.image_path = image_path;
-        this.soc = soc;
-        this.nitrogen = nitrogen;
-        this.phosphorus = phosphorus;
-        this.potassium = potassium;
-        this.ph = ph;
-        this.recommended_crops = recommended_crops;
-    }
+    public SoilTest() {}
 }

@@ -1,14 +1,20 @@
 package com.example.smart_soil.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import com.example.smart_soil.adapters.FarmEntityAdapter;
+import com.example.smart_soil.activities.AddFarmActivity;
+import com.example.smart_soil.activities.HistoryActivity;
+import com.example.smart_soil.activities.SoilTestActivity;
+import com.example.smart_soil.adapters.FarmAdapter;
+import com.example.smart_soil.database.FarmEntity;
 import com.example.smart_soil.databinding.FragmentFarmListBinding;
 import com.example.smart_soil.viewmodels.FarmViewModel;
 
@@ -16,7 +22,7 @@ public class FarmListFragment extends Fragment {
 
     private FragmentFarmListBinding binding;
     private FarmViewModel viewModel;
-    private FarmEntityAdapter adapter;
+    private FarmAdapter adapter;
 
     @Nullable
     @Override
@@ -30,7 +36,39 @@ public class FarmListFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         viewModel = new ViewModelProvider(this).get(FarmViewModel.class);
-        adapter = new FarmEntityAdapter(requireContext());
+        adapter = new FarmAdapter(new FarmAdapter.OnFarmClickListener() {
+            @Override
+            public void onFarmClick(FarmEntity farm) {}
+
+            @Override
+            public void onTestClick(FarmEntity farm) {
+                Intent intent = new Intent(getContext(), SoilTestActivity.class);
+                intent.putExtra("farm_id", farm.getId());
+                intent.putExtra("farm_name", farm.getName());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onHistoryClick(FarmEntity farm) {
+                Intent intent = new Intent(getContext(), HistoryActivity.class);
+                intent.putExtra("farm_id", farm.getId());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onEditClick(FarmEntity farm) {
+                Intent intent = new Intent(getContext(), AddFarmActivity.class);
+                intent.putExtra("edit_mode", true);
+                intent.putExtra("farm_id", farm.getId());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onDeleteClick(FarmEntity farm) {
+                viewModel.deleteFarm(farm);
+                Toast.makeText(getContext(), "Farm deleted", Toast.LENGTH_SHORT).show();
+            }
+        });
         binding.rvFarms.setAdapter(adapter);
 
         binding.swipeRefresh.setOnRefreshListener(() -> {
@@ -45,16 +83,16 @@ public class FarmListFragment extends Fragment {
     }
 
     private void observeViewModel() {
-        binding.progress_bar.setVisibility(View.VISIBLE);
+        binding.progressBar.setVisibility(View.VISIBLE);
         viewModel.getAllFarms().observe(getViewLifecycleOwner(), farms -> {
-            binding.progress_bar.setVisibility(View.GONE);
+            binding.progressBar.setVisibility(View.GONE);
             if (farms == null || farms.isEmpty()) {
                 binding.emptyState.setVisibility(View.VISIBLE);
                 binding.rvFarms.setVisibility(View.GONE);
             } else {
                 binding.emptyState.setVisibility(View.GONE);
                 binding.rvFarms.setVisibility(View.VISIBLE);
-                adapter.setFarms(farms);
+                adapter.submitList(farms);
             }
         });
     }

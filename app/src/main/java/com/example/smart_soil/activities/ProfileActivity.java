@@ -17,6 +17,8 @@ import com.example.smart_soil.services.RetrofitClient;
 import com.example.smart_soil.utils.NavigationHelper;
 import com.google.android.material.button.MaterialButton;
 
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -61,11 +63,11 @@ public class ProfileActivity extends BaseActivity {
     }
 
     private void fetchUserProfile() {
-        RetrofitClient.getApiService().getProfile(getAuthToken()).enqueue(new Callback<User>() {
+        RetrofitClient.getApiService(this).getProfile(getAuthToken()).enqueue(new Callback<List<User>>() {
             @Override
-            public void onResponse(Call<User> call, Response<User> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    User user = response.body();
+            public void onResponse(Call<List<User>> call, Response<List<User>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    User user = response.body().get(0);
                     profileEmail.setText(user.email);
                     inputFullName.setText(user.name);
                     inputMobile.setText(user.mobile);
@@ -83,7 +85,7 @@ public class ProfileActivity extends BaseActivity {
             }
 
             @Override
-            public void onFailure(Call<User> call, Throwable t) {
+            public void onFailure(Call<List<User>> call, Throwable t) {
                 Timber.e(t, "Fetch profile failure");
                 // Fallback to local data
                 profileEmail.setText(prefsManager.getUserEmail());
@@ -110,14 +112,13 @@ public class ProfileActivity extends BaseActivity {
         saveChangesButton.setEnabled(false);
         saveChangesButton.setText("Saving...");
 
-        RetrofitClient.getApiService().updateProfile(getAuthToken(), updateRequest).enqueue(new Callback<User>() {
+        RetrofitClient.getApiService(this).updateProfile(getAuthToken(), prefsManager.getUserId(), updateRequest).enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(Call<User> call, Response<User> response) {
+            public void onResponse(Call<Void> call, Response<Void> response) {
                 saveChangesButton.setEnabled(true);
                 saveChangesButton.setText("Save Changes");
-                if (response.isSuccessful() && response.body() != null) {
-                    User updated = response.body();
-                    prefsManager.saveUserName(updated.name);
+                if (response.isSuccessful()) {
+                    prefsManager.saveUserName(name);
                     Toast.makeText(ProfileActivity.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(ProfileActivity.this, "Update failed", Toast.LENGTH_SHORT).show();
@@ -125,7 +126,7 @@ public class ProfileActivity extends BaseActivity {
             }
 
             @Override
-            public void onFailure(Call<User> call, Throwable t) {
+            public void onFailure(Call<Void> call, Throwable t) {
                 saveChangesButton.setEnabled(true);
                 saveChangesButton.setText("Save Changes");
                 Timber.e(t, "Update profile failure");

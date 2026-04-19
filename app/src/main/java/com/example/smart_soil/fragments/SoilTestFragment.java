@@ -1,7 +1,10 @@
 package com.example.smart_soil.fragments;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,17 +16,19 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.smart_soil.databinding.FragmentSoilTestBinding;
+import com.example.smart_soil.ml.SoilMLAnalyzer;
 import com.example.smart_soil.utils.ImageUtils;
 import com.example.smart_soil.viewmodels.SoilTestViewModel;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.Locale;
+import timber.log.Timber;
 
 public class SoilTestFragment extends Fragment {
 
     private FragmentSoilTestBinding binding;
     private SoilTestViewModel viewModel;
+    private SoilMLAnalyzer mlAnalyzer;
     private File photoFile;
     private Uri photoUri;
 
@@ -41,14 +46,9 @@ public class SoilTestFragment extends Fragment {
             new ActivityResultContracts.GetContent(),
             uri -> {
                 if (uri != null) {
-                    try {
-                        photoFile = ImageUtils.createImageFile(requireContext());
-                        copyUriToFile(uri, photoFile);
-                        binding.ivSoilPreview.setImageURI(uri);
-                        binding.btnAnalyze.setEnabled(true);
-                    } catch (IOException e) {
-                        Toast.makeText(getContext(), "Error selecting image", Toast.LENGTH_SHORT).show();
-                    }
+                    photoUri = uri;
+                    binding.ivSoilPreview.setImageURI(uri);
+                    binding.btnAnalyze.setEnabled(true);
                 }
             }
     );
@@ -64,6 +64,12 @@ public class SoilTestFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(SoilTestViewModel.class);
+        
+        try {
+            mlAnalyzer = new SoilMLAnalyzer(requireContext());
+        } catch (IOException e) {
+            Timber.e(e, "Failed to init ML Analyzer");
+        }
 
         binding.btnCamera.setOnClickListener(v -> {
             try {
@@ -77,60 +83,58 @@ public class SoilTestFragment extends Fragment {
 
         binding.btnGallery.setOnClickListener(v -> pickGallery.launch("image/*"));
 
-        binding.btnAnalyze.setOnClickListener(v -> {
-            if (photoFile != null) {
-                File compressed = ImageUtils.compressImage(requireContext(), photoFile);
-                viewModel.predictSoil(compressed);
-            }
-        });
+        binding.btnAnalyze.setOnClickListener(v -> runLocalInference());
 
         observeViewModel();
     }
 
-    private void observeViewModel() {
-        viewModel.getPredictionResult().observe(getViewLifecycleOwner(), resource -> {
-            if (resource == null) return;
-            switch (resource.status) {
-                case LOADING:
-                    binding.progressBar.setVisibility(View.VISIBLE);
-                    binding.cvResults.setVisibility(View.GONE);
-                    binding.btnAnalyze.setEnabled(false);
-                    break;
-                case SUCCESS:
-                    binding.progressBar.setVisibility(View.GONE);
-                    binding.cvResults.setVisibility(View.VISIBLE);
-                    binding.btnAnalyze.setEnabled(true);
-                    if (resource.data != null) {
-                        binding.tvResN.setText("Nitrogen (N): " + resource.data.getNitrogen());
-                        binding.tvResP.setText("Phosphorus (P): " + resource.data.getPhosphorus());
-                        binding.tvResK.setText("Potassium (K): " + resource.data.getPotassium());
-                        binding.tvResPh.setText("pH Level: " + resource.data.getPh());
-                        binding.tvResCrop.setText("Recommended Crop: " + resource.data.getRecommendedCrop());
-                    }
-                    break;
-                case ERROR:
-                    binding.progressBar.setVisibility(View.GONE);
-                    binding.btnAnalyze.setEnabled(true);
-                    Toast.makeText(getContext(), resource.message, Toast.LENGTH_LONG).show();
-                    break;
+    private void runLocalInference() {
+        if (photoUri == null || mlAnalyzer == null) return;
+
+        try {
+            Bitmap bitmap;
+            if (photoFile != null && photoFile.exists()) {
+                bitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
+            } else {
+                bitmap = MediaStore.Images.Media.getBitmap(requireContext().getContentResolver(), photoUri);
             }
-        });
+
+            if (bitmap == null) return;
+
+            // Automated Preprocessing: Automated Center Crop + Resize to 224x224
+            Bitmap modelInput = ImageUtils.processImageForModel(bitmap);
+            
+            // Bulletproof Inference with fresh ByteBuffer
+            SoilMLAnalyzer.SoilResult result = mlAnalyzer.analyzeSoil(modelInput, 1.0f);
+
+            if (result != null) {
+                displayResults(result);
+                // Optional: Sync with server
+                if (photoFile != null) viewModel.predictSoil(photoFile);
+            }
+        } catch (IOException e) {
+            Timber.e(e, "Error processing image");
+        }
     }
 
-    private void copyUriToFile(Uri uri, File destFile) throws IOException {
-        try (InputStream in = requireContext().getContentResolver().openInputStream(uri);
-             FileOutputStream out = new FileOutputStream(destFile)) {
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = in.read(buffer)) > 0) {
-                out.write(buffer, 0, len);
-            }
-        }
+    private void displayResults(SoilMLAnalyzer.SoilResult result) {
+        binding.cvResults.setVisibility(View.VISIBLE);
+        binding.tvResN.setText(String.format(Locale.US, "Nitrogen (N): %.2f", result.n));
+        binding.tvResP.setText(String.format(Locale.US, "Phosphorus (P): %.2f", result.p));
+        binding.tvResK.setText(String.format(Locale.US, "Potassium (K): %.2f", result.k));
+        binding.tvResPh.setText("Status: Local Analysis Complete");
+    }
+
+    private void observeViewModel() {
+        viewModel.getPredictionResult().observe(getViewLifecycleOwner(), resource -> {
+            // Server sync observation
+        });
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (mlAnalyzer != null) mlAnalyzer.close();
         binding = null;
     }
 }

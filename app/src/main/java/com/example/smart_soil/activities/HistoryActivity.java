@@ -65,16 +65,10 @@ public class HistoryActivity extends BaseActivity {
 
         // Setup Custom Nav
         NavigationHelper.setupCustomNav(this, R.id.btn_nav_history);
-
-        // Handle Intent for specific farm
-        int farmId = getIntent().getIntExtra("farm_id", -1);
-        if (farmId != -1) {
-            // Logic to select this farm in spinner after it loads
-        }
     }
 
     private void loadFarms() {
-        RetrofitClient.getApiService().getFarms(getAuthToken()).enqueue(new Callback<List<Farm>>() {
+        RetrofitClient.getApiService(this).getFarms(getAuthToken()).enqueue(new Callback<List<Farm>>() {
             @Override
             public void onResponse(Call<List<Farm>> call, Response<List<Farm>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -99,6 +93,10 @@ public class HistoryActivity extends BaseActivity {
             farmNames.add(farm.name);
         }
 
+        if (farmNames.isEmpty()) {
+            farmNames.add("No farms available");
+        }
+
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, farmNames);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         farmSpinner.setAdapter(spinnerAdapter);
@@ -106,7 +104,9 @@ public class HistoryActivity extends BaseActivity {
         farmSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                loadSoilTests(farmList.get(position).id);
+                if (!farmList.isEmpty()) {
+                    loadSoilTests(farmList.get(position).id);
+                }
             }
 
             @Override
@@ -119,23 +119,32 @@ public class HistoryActivity extends BaseActivity {
             for (int i = 0; i < farmList.size(); i++) {
                 if (farmList.get(i).id == targetFarmId) {
                     farmSpinner.setSelection(i);
-                    break;
+                    // loadSoilTests will be triggered by onItemSelected
+                    return;
                 }
             }
-        } else if (!farmList.isEmpty()) {
+        }
+        
+        if (!farmList.isEmpty()) {
             loadSoilTests(farmList.get(0).id);
         }
     }
 
     private void loadSoilTests(int farmId) {
-        RetrofitClient.getApiService().getSoilTests(getAuthToken(), farmId).enqueue(new Callback<List<SoilTest>>() {
+        // Corrected Query: Supabase needs 'eq.ID' for query parameters in filter
+        RetrofitClient.getApiService(this).getSoilTests(getAuthToken(), "eq." + farmId).enqueue(new Callback<List<SoilTest>>() {
             @Override
             public void onResponse(Call<List<SoilTest>> call, Response<List<SoilTest>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     testList.clear();
                     testList.addAll(response.body());
                     adapter.notifyDataSetChanged();
+                    
+                    if (testList.isEmpty()) {
+                        Toast.makeText(HistoryActivity.this, "No history found for this farm", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
+                    Timber.e("History Load Fail: %d - %s", response.code(), response.message());
                     Toast.makeText(HistoryActivity.this, "Failed to load history", Toast.LENGTH_SHORT).show();
                 }
             }

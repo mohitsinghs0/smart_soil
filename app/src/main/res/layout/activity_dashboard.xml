@@ -43,7 +43,7 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="16sp"
                 android:layout_marginBottom="16dp"
-                tools:text="Welcome, Mohit Singh!"/>
+                tools:text="Welcome, User!"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/farms_recycler_view"
@@ -94,6 +94,7 @@
         android:contentDescription="@string/add_farm"/>
 
     <include
+        android:id="@+id/custom_nav"
         layout="@layout/layout_custom_nav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

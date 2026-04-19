@@ -57,12 +57,13 @@ public class AIChatActivity extends BaseActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-        soilTestId = (long) getIntent().getIntExtra("soil_test_id", -1);
-        sessionId = getIntent().getLongExtra("session_id", -1);
+        // Fix: Use getLongExtra to read the soil_test_id
+        soilTestId = getIntent().getLongExtra("soil_test_id", -1L);
+        sessionId = getIntent().getLongExtra("session_id", -1L);
 
-        if (sessionId != -1) {
+        if (sessionId != -1L) {
             loadMessages();
-        } else if (soilTestId != -1) {
+        } else if (soilTestId != -1L) {
             createSession();
         } else {
             Toast.makeText(this, "No test selected for chat", Toast.LENGTH_SHORT).show();
@@ -73,14 +74,14 @@ public class AIChatActivity extends BaseActivity {
     }
 
     private void createSession() {
-        Map<String, Long> payload = new HashMap<>();
+        Map<String, Object> payload = new HashMap<>();
         payload.put("soil_test_id", soilTestId);
 
-        RetrofitClient.getApiService().createAIChatSession(getAuthToken(), payload).enqueue(new Callback<AIChatSession>() {
+        RetrofitClient.getApiService(this).createAIChatSession(getAuthToken(), payload).enqueue(new Callback<List<AIChatSession>>() {
             @Override
-            public void onResponse(Call<AIChatSession> call, Response<AIChatSession> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    sessionId = response.body().id;
+            public void onResponse(Call<List<AIChatSession>> call, Response<List<AIChatSession>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    sessionId = response.body().get(0).id;
                     // Start with a greeting from AI
                     AIChatMessage welcomeMsg = new AIChatMessage();
                     welcomeMsg.role = "assistant";
@@ -93,14 +94,14 @@ public class AIChatActivity extends BaseActivity {
             }
 
             @Override
-            public void onFailure(Call<AIChatSession> call, Throwable t) {
+            public void onFailure(Call<List<AIChatSession>> call, Throwable t) {
                 Toast.makeText(AIChatActivity.this, "Network error", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void loadMessages() {
-        RetrofitClient.getApiService().getAIChatMessages(getAuthToken(), sessionId).enqueue(new Callback<List<AIChatMessage>>() {
+        RetrofitClient.getApiService(this).getAIChatMessages(getAuthToken(), "eq." + sessionId).enqueue(new Callback<List<AIChatMessage>>() {
             @Override
             public void onResponse(Call<List<AIChatMessage>> call, Response<List<AIChatMessage>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -128,18 +129,18 @@ public class AIChatActivity extends BaseActivity {
         recyclerView.scrollToPosition(messageList.size() - 1);
         messageInput.setText("");
 
-        RetrofitClient.getApiService().sendAIChatMessage(getAuthToken(), userMsg).enqueue(new Callback<AIChatMessage>() {
+        RetrofitClient.getApiService(this).sendAIChatMessage(getAuthToken(), userMsg).enqueue(new Callback<List<AIChatMessage>>() {
             @Override
-            public void onResponse(Call<AIChatMessage> call, Response<AIChatMessage> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    messageList.add(response.body());
+            public void onResponse(Call<List<AIChatMessage>> call, Response<List<AIChatMessage>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    messageList.add(response.body().get(0));
                     adapter.notifyItemInserted(messageList.size() - 1);
                     recyclerView.scrollToPosition(messageList.size() - 1);
                 }
             }
 
             @Override
-            public void onFailure(Call<AIChatMessage> call, Throwable t) {
+            public void onFailure(Call<List<AIChatMessage>> call, Throwable t) {
                 Toast.makeText(AIChatActivity.this, "Failed to get AI response", Toast.LENGTH_SHORT).show();
             }
         });
