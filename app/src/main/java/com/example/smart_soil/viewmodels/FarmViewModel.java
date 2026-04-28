@@ -17,8 +17,11 @@ public class FarmViewModel extends AndroidViewModel {
         super(application);
         SharedPrefsManager prefsManager = new SharedPrefsManager(application);
         String token = prefsManager.getToken();
+        String userId = prefsManager.getUserId();
+        
         repository = new FarmRepository(application, token);
-        allFarms = repository.getLocalFarms();
+        // Only fetch farms for the currently logged-in user
+        allFarms = repository.getLocalFarms(userId);
     }
 
     public LiveData<List<FarmEntity>> getAllFarms() {

@@ -156,6 +156,20 @@
                         android:paddingEnd="20dp"
                         android:layout_marginBottom="16dp"/>
 
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_auto_locate"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="55dp"
+                        android:layout_marginBottom="24dp"
+                        android:text="Auto-Detect Location"
+                        app:icon="@drawable/ic_map_pin"
+                        app:strokeColor="@color/brand_green"
+                        app:iconTint="@color/brand_green"
+                        app:iconPadding="8dp"
+                        android:textColor="@color/brand_green"
+                        app:cornerRadius="12dp" />
+
                     <!-- Location: City & District -->
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -194,14 +208,21 @@
                                 android:text="@string/district"
                                 android:textColor="@color/text_secondary"
                                 android:layout_marginBottom="8dp"/>
-                            <EditText
-                                android:id="@+id/input_district"
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/til_district"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                                 android:layout_width="match_parent"
-                                android:layout_height="55dp"
-                                android:background="@drawable/bg_edit_text"
-                                android:inputType="textCapWords"
-                                android:paddingStart="20dp"
-                                android:paddingEnd="20dp"/>
+                                android:layout_height="wrap_content"
+                                app:boxBackgroundMode="outline"
+                                app:hintEnabled="false">
+                                <AutoCompleteTextView
+                                    android:id="@+id/input_district_dropdown"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="none"
+                                    android:textSize="14sp"/>
+                            </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
                     </LinearLayout>
 
@@ -223,14 +244,22 @@
                                 android:text="State"
                                 android:textColor="@color/text_secondary"
                                 android:layout_marginBottom="8dp"/>
-                            <EditText
-                                android:id="@+id/input_state"
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/til_state"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                                 android:layout_width="match_parent"
-                                android:layout_height="55dp"
-                                android:background="@drawable/bg_edit_text"
-                                android:inputType="textCapWords"
-                                android:paddingStart="20dp"
-                                android:paddingEnd="20dp"/>
+                                android:layout_height="wrap_content"
+                                app:boxBackgroundMode="outline"
+                                app:hintEnabled="false">
+                                <AutoCompleteTextView
+                                    android:id="@+id/input_state_dropdown"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="none"
+                                    android:text="Maharashtra"
+                                    android:textSize="14sp"/>
+                            </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
                         <LinearLayout
                             android:layout_width="0dp"

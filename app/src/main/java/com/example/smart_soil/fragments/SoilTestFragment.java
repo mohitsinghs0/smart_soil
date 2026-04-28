@@ -104,8 +104,8 @@ public class SoilTestFragment extends Fragment {
             // Automated Preprocessing: Automated Center Crop + Resize to 224x224
             Bitmap modelInput = ImageUtils.processImageForModel(bitmap);
             
-            // Bulletproof Inference with fresh ByteBuffer
-            SoilMLAnalyzer.SoilResult result = mlAnalyzer.analyzeSoil(modelInput, 1.0f);
+            // Call the updated analyzeSoil without the kitValue parameter
+            SoilMLAnalyzer.SoilResult result = mlAnalyzer.analyzeSoil(modelInput);
 
             if (result != null) {
                 displayResults(result);
@@ -119,9 +119,9 @@ public class SoilTestFragment extends Fragment {
 
     private void displayResults(SoilMLAnalyzer.SoilResult result) {
         binding.cvResults.setVisibility(View.VISIBLE);
-        binding.tvResN.setText(String.format(Locale.US, "Nitrogen (N): %.2f", result.n));
-        binding.tvResP.setText(String.format(Locale.US, "Phosphorus (P): %.2f", result.p));
-        binding.tvResK.setText(String.format(Locale.US, "Potassium (K): %.2f", result.k));
+        binding.tvResN.setText(String.format(Locale.US, "Nitrogen (N): %.2f", result.nitrogen));
+        binding.tvResP.setText(String.format(Locale.US, "pH: %.2f", result.ph));
+        binding.tvResK.setText(String.format(Locale.US, "SOC: %.2f", result.soc));
         binding.tvResPh.setText("Status: Local Analysis Complete");
     }
 

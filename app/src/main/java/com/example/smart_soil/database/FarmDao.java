@@ -21,6 +21,9 @@ public interface FarmDao {
     @Delete
     void delete(FarmEntity farm);
 
+    @Query("SELECT * FROM farms WHERE userId = :userId ORDER BY createdAt DESC")
+    LiveData<List<FarmEntity>> getAllFarmsByUser(String userId);
+
     @Query("SELECT * FROM farms ORDER BY createdAt DESC")
     LiveData<List<FarmEntity>> getAllFarms();
 

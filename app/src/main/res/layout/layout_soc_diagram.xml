@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="SOC Color Chart Reference"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <!-- Sufficient (> 1.0%) -->
+            <LinearLayout
+                android:id="@+id/container_soc_sufficient"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:alpha="0.3"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#212121" android:layout_marginBottom="4dp"/>
+                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#3E2723" android:layout_marginBottom="4dp"/>
+                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#4E342E" android:layout_marginBottom="4dp"/>
+                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#5D4037" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Sufficient"
+                    android:textColor="#2E7D32"
+                    android:textStyle="bold"
+                    android:textSize="12sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="> 1.0%"
+                    android:textColor="#2E7D32"
+                    android:textSize="11sp"/>
+            </LinearLayout>
+
+            <!-- Medium (0.5 - 1.0%) -->
+            <LinearLayout
+                android:id="@+id/container_soc_medium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:alpha="0.3"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#8B4513" android:layout_marginBottom="4dp"/>
+                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#A0522D" android:layout_marginBottom="4dp"/>
+                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#A52A2A" android:layout_marginBottom="4dp"/>
+                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#D2691E" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Medium"
+                    android:textColor="#C62828"
+                    android:textStyle="bold"
+                    android:textSize="12sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0.5-1.0%"
+                    android:textColor="#C62828"
+                    android:textSize="11sp"/>
+            </LinearLayout>
+
+            <!-- Low (< 0.5%) -->
+            <LinearLayout
+                android:id="@+id/container_soc_low"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:alpha="0.3"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#CD853F" android:layout_marginBottom="4dp"/>
+                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#DEB887" android:layout_marginBottom="4dp"/>
+                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#F4A460" android:layout_marginBottom="4dp"/>
+                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#FFCC80" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Low"
+                    android:textColor="#FF8F00"
+                    android:textStyle="bold"
+                    android:textSize="12sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="&lt; 0.5%"
+                    android:textColor="#FF8F00"
+                    android:textSize="11sp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -5,7 +5,7 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-@Database(entities = {UserEntity.class, FarmEntity.class, SoilTestEntity.class}, version = 2, exportSchema = false)
+@Database(entities = {UserEntity.class, FarmEntity.class, SoilTestEntity.class}, version = 3, exportSchema = false)
 public abstract class SmartSoilDatabase extends RoomDatabase {
 
     private static volatile SmartSoilDatabase instance;

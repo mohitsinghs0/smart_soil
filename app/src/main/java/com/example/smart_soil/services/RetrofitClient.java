@@ -22,8 +22,12 @@ import timber.log.Timber;
 public class RetrofitClient {
 
     private static volatile Retrofit retrofit = null;
+    private static volatile Retrofit weatherRetrofit = null;
     private static ApiService apiService = null;
     private static AuthApiService authApiService = null;
+    private static WeatherApiService weatherApiService = null;
+
+    private static final String WEATHER_BASE_URL = "https://api.openweathermap.org/";
 
     private RetrofitClient() {
     }
@@ -65,7 +69,6 @@ public class RetrofitClient {
                                                     .header("Authorization", "Bearer " + newAuth.accessToken)
                                                     .build();
                                         } else {
-                                            // Optional: Broadcast logout or clear prefs
                                             prefsManager.clearAll();
                                         }
                                     }
@@ -91,6 +94,30 @@ public class RetrofitClient {
             }
         }
         return retrofit;
+    }
+
+    public static Retrofit getWeatherClient() {
+        if (weatherRetrofit == null) {
+            synchronized (RetrofitClient.class) {
+                if (weatherRetrofit == null) {
+                    HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+                    logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+                    OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                            .addInterceptor(logging)
+                            .connectTimeout(15, TimeUnit.SECONDS)
+                            .readTimeout(15, TimeUnit.SECONDS)
+                            .build();
+
+                    weatherRetrofit = new Retrofit.Builder()
+                            .baseUrl(WEATHER_BASE_URL)
+                            .client(okHttpClient)
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build();
+                }
+            }
+        }
+        return weatherRetrofit;
     }
 
     private static AuthResponse refreshAccessTokenSync(String refreshToken) {
@@ -133,7 +160,13 @@ public class RetrofitClient {
         return authApiService;
     }
 
-    // Keep for potential legacy use, but it's better to use SupabaseConfig
+    public static WeatherApiService getWeatherApiService() {
+        if (weatherApiService == null) {
+            weatherApiService = getWeatherClient().create(WeatherApiService.class);
+        }
+        return weatherApiService;
+    }
+
     public static String getBaseUrl() {
         return SupabaseConfig.BASE_URL;
     }

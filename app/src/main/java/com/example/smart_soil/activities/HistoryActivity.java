@@ -50,9 +50,6 @@ public class HistoryActivity extends BaseActivity {
         adapter = new HistoryAdapter(this, testList);
         recyclerView.setAdapter(adapter);
 
-        // Load Farms
-        loadFarms();
-
         // Export PDF
         exportPdfButton.setOnClickListener(v -> {
             if (testList.isEmpty()) {
@@ -67,8 +64,19 @@ public class HistoryActivity extends BaseActivity {
         NavigationHelper.setupCustomNav(this, R.id.btn_nav_history);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Move loadFarms to onResume for auto-refresh
+        loadFarms();
+    }
+
     private void loadFarms() {
-        RetrofitClient.getApiService(this).getFarms(getAuthToken()).enqueue(new Callback<List<Farm>>() {
+        String userId = prefsManager.getUserId();
+        if (userId == null) return;
+
+        // Filter by user_id to ensure privacy
+        RetrofitClient.getApiService(this).getFarms(getAuthToken(), "eq." + userId).enqueue(new Callback<List<Farm>>() {
             @Override
             public void onResponse(Call<List<Farm>> call, Response<List<Farm>> response) {
                 if (response.isSuccessful() && response.body() != null) {

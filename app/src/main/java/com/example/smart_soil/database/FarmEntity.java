@@ -8,6 +8,7 @@ public class FarmEntity {
     @PrimaryKey(autoGenerate = true)
     private int id;
     private String serverId; // ID from backend
+    private String userId;   // Associated user UUID
     private String name;
     private String village;
     private String city;
@@ -43,6 +44,9 @@ public class FarmEntity {
 
     public String getServerId() { return serverId; }
     public void setServerId(String serverId) { this.serverId = serverId; }
+
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

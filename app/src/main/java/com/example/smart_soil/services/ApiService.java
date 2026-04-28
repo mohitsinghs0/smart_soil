@@ -33,9 +33,9 @@ public interface ApiService {
     @PUT("rest/v1/profiles")
     Call<Void> updateProfile(@Header("Authorization") String token, @Query("id") String userId, @Body User user);
     
-    // Farms
+    // Farms (Added user_id filter to ensure privacy)
     @GET("rest/v1/farms?select=*")
-    Call<List<Farm>> getFarms(@Header("Authorization") String token);
+    Call<List<Farm>> getFarms(@Header("Authorization") String token, @Query("user_id") String userId);
     
     @POST("rest/v1/farms")
     Call<List<Farm>> createFarm(@Header("Authorization") String token, @Body Map<String, Object> farm);

@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -27,6 +28,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.example.smart_soil.R;
+import com.example.smart_soil.ml.SoilMLAnalyzer;
 import com.example.smart_soil.models.Farm;
 import com.example.smart_soil.models.SoilTest;
 import com.example.smart_soil.models.SoilTestRequest;
@@ -43,8 +45,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -57,12 +59,12 @@ public class SoilTestActivity extends BaseActivity {
     private LinearLayout resultsContainer;
     private View emptyPredictionContainer;
     private LinearLayout parametersContainer;
-    private ChipGroup cropsChipGroup;
     private FrameLayout uploadBox;
     private ImageView soilImagePreview;
     private View selectionOptionsContainer;
-    private Uri selectedImageUri;
+    private ChipGroup cropsChipGroup;
 
+    private Uri selectedImageUri;
     private LinearLayout cameraBox;
     private Uri cameraImageUri;
     private File standardizedImageFile;
@@ -74,6 +76,9 @@ public class SoilTestActivity extends BaseActivity {
     private SoilTest currentPrediction;
     private int selectedFarmServerId = -1;
     private int preSelectedFarmId = -1;
+
+    private SoilMLAnalyzer analyzer;
+    private boolean isPredictionLocked = false;
 
     private final ActivityResultLauncher<String> imagePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
@@ -96,6 +101,12 @@ public class SoilTestActivity extends BaseActivity {
 
         preSelectedFarmId = getIntent().getIntExtra("farm_id", -1);
 
+        try {
+            analyzer = new SoilMLAnalyzer(this);
+        } catch (Throwable t) {
+            Timber.e(t, "Fatal: Failed to initialize ML analyzer");
+        }
+
         initViews();
         setupFarmSpinner();
         loadFarmsFromApi();
@@ -104,6 +115,8 @@ public class SoilTestActivity extends BaseActivity {
         cameraBox.setOnClickListener(v -> openCamera());
 
         predictButton.setOnClickListener(v -> {
+            if (isPredictionLocked) return;
+
             if (selectedFarmServerId <= 0) {
                 Toast.makeText(this, "Please select a valid farm", Toast.LENGTH_SHORT).show();
                 return;
@@ -112,6 +125,7 @@ public class SoilTestActivity extends BaseActivity {
                 Toast.makeText(this, "Please upload a soil image first", Toast.LENGTH_SHORT).show();
                 return;
             }
+
             performPrediction();
         });
 
@@ -136,11 +150,25 @@ public class SoilTestActivity extends BaseActivity {
         resultsContainer = findViewById(R.id.results_container);
         emptyPredictionContainer = findViewById(R.id.empty_prediction_container);
         parametersContainer = findViewById(R.id.parameters_container);
-        cropsChipGroup = findViewById(R.id.crops_chip_group);
         uploadBox = findViewById(R.id.upload_box);
         soilImagePreview = findViewById(R.id.soil_image_preview);
         selectionOptionsContainer = findViewById(R.id.selection_options_container);
         cameraBox = findViewById(R.id.camera_box);
+        cropsChipGroup = findViewById(R.id.crops_chip_group);
+    }
+
+    private void unlockPrediction() {
+        isPredictionLocked = false;
+        predictButton.setEnabled(true);
+        predictButton.setAlpha(1.0f);
+        predictButton.setText("Predict Soil Health");
+    }
+
+    private void lockPrediction() {
+        isPredictionLocked = true;
+        predictButton.setEnabled(false);
+        predictButton.setAlpha(0.6f);
+        predictButton.setText("Prediction Completed");
     }
 
     private void openCamera() {
@@ -173,12 +201,18 @@ public class SoilTestActivity extends BaseActivity {
         new Thread(() -> {
             try {
                 standardizedImageFile = ImageStandardizer.standardizeFromUri(uri, this);
-                Bitmap standardizedBitmap = BitmapFactory.decodeFile(
-                        standardizedImageFile.getAbsolutePath());
+                if (standardizedImageFile == null || !standardizedImageFile.exists()) {
+                    runOnUiThread(this::unlockPrediction);
+                    return;
+                }
 
-                SoilImageValidator.ValidationResult result =
-                        SoilImageValidator.validate(standardizedBitmap);
-
+                Bitmap standardizedBitmap = BitmapFactory.decodeFile(standardizedImageFile.getAbsolutePath());
+                if (standardizedBitmap == null) {
+                    runOnUiThread(this::unlockPrediction);
+                    return;
+                }
+                
+                SoilImageValidator.ValidationResult result = SoilImageValidator.validate(standardizedBitmap);
                 standardizedBitmap.recycle();
 
                 if (result.isValid) {
@@ -187,31 +221,22 @@ public class SoilTestActivity extends BaseActivity {
                         soilImagePreview.setVisibility(View.VISIBLE);
                         selectionOptionsContainer.setVisibility(View.GONE);
                         selectedImageUri = Uri.fromFile(standardizedImageFile);
-                        predictButton.setEnabled(true);
-                        predictButton.setText("  Predict Soil Health");
-                        predictButton.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.brand_green));
+                        unlockPrediction();
                     });
                 } else {
                     runOnUiThread(() -> {
-                        standardizedImageFile = null;
                         selectedImageUri = null;
-                        soilImagePreview.setVisibility(View.GONE);
-                        selectionOptionsContainer.setVisibility(View.VISIBLE);
-                        predictButton.setEnabled(true);
-                        predictButton.setText("  Predict Soil Health");
+                        unlockPrediction();
                         new AlertDialog.Builder(this)
-                                .setTitle("❌ Invalid Image")
+                                .setTitle("Invalid Image")
                                 .setMessage(result.errorMessage)
-                                .setPositiveButton("Try Again", (dialog, which) -> dialog.dismiss())
+                                .setPositiveButton("OK", null)
                                 .show();
                     });
                 }
             } catch (Exception e) {
-                runOnUiThread(() -> {
-                    predictButton.setEnabled(true);
-                    predictButton.setText("  Predict Soil Health");
-                    Toast.makeText(this, "Image processing failed", Toast.LENGTH_SHORT).show();
-                });
+                Timber.e(e);
+                runOnUiThread(this::unlockPrediction);
             }
         }).start();
     }
@@ -226,6 +251,7 @@ public class SoilTestActivity extends BaseActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (!farmList.isEmpty() && position < farmList.size()) {
                     selectedFarmServerId = farmList.get(position).id;
+                    Timber.d("DEBUG_SPINNER: Selected Position: %d, Farm ID: %d", position, selectedFarmServerId);
                 }
             }
             @Override
@@ -234,59 +260,113 @@ public class SoilTestActivity extends BaseActivity {
     }
 
     private void loadFarmsFromApi() {
-        RetrofitClient.getApiService(this).getFarms(getAuthToken()).enqueue(new Callback<List<Farm>>() {
+        String userId = prefsManager.getUserId();
+        if (userId == null) return;
+
+        Timber.d("DEBUG_API: Loading farms for user: %s", userId);
+        // Filter by current user's ID
+        RetrofitClient.getApiService(this).getFarms(getAuthToken(), "eq." + userId).enqueue(new Callback<List<Farm>>() {
             @Override
             public void onResponse(Call<List<Farm>> call, Response<List<Farm>> response) {
                 if (response.isSuccessful() && response.body() != null) {
+                    List<Farm> farms = response.body();
+                    Timber.d("DEBUG_API: Farms received: %d", farms.size());
+                    
                     farmList.clear();
                     farmNames.clear();
-                    farmList.addAll(response.body());
+                    farmList.addAll(farms);
+
                     int selectionIndex = 0;
                     for (int i = 0; i < farmList.size(); i++) {
                         Farm farm = farmList.get(i);
-                        farmNames.add(farm.name + " (" + farm.village + ")");
+                        farmNames.add(farm.name + " (" + (farm.village != null ? farm.village : "N/A") + ")");
                         if (preSelectedFarmId != -1 && farm.id == preSelectedFarmId) {
                             selectionIndex = i;
                         }
                     }
+
                     if (farmNames.isEmpty()) {
                         farmNames.add("No farms found");
                         selectedFarmServerId = -1;
                     } else {
-                        spinnerAdapter.notifyDataSetChanged();
-                        farmSpinner.setSelection(selectionIndex);
                         selectedFarmServerId = farmList.get(selectionIndex).id;
                     }
+
+                    spinnerAdapter.notifyDataSetChanged();
+                    farmSpinner.setSelection(selectionIndex);
+                    
+                    if (!farmList.isEmpty()) {
+                        unlockPrediction();
+                    }
+                } else {
+                    Timber.e("DEBUG_API: Error %d: %s", response.code(), response.message());
+                    Toast.makeText(SoilTestActivity.this, "Failed to load farms", Toast.LENGTH_SHORT).show();
                 }
             }
+
             @Override
             public void onFailure(Call<List<Farm>> call, Throwable t) {
-                Timber.e(t, "Error loading farms");
-                Toast.makeText(SoilTestActivity.this, "Failed to load farms", Toast.LENGTH_SHORT).show();
+                Timber.e(t, "DEBUG_API: Network failure");
+                Toast.makeText(SoilTestActivity.this, "Network error loading farms", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void performPrediction() {
-        currentPrediction = SoilPredictionUtil.predictSoilHealth();
-        showResults(currentPrediction);
+        if (analyzer == null || selectedImageUri == null) return;
+
+        try {
+            Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(selectedImageUri));
+            SoilMLAnalyzer.SoilResult result = analyzer.analyzeSoil(bitmap);
+            bitmap.recycle();
+
+            if (result != null) {
+                currentPrediction = new SoilTest();
+                currentPrediction.soc = result.soc;
+                currentPrediction.nitrogen = result.nitrogen;
+                currentPrediction.ph = result.ph;
+                currentPrediction.phosphorus = 0.0;
+                currentPrediction.potassium = 0.0;
+                
+                List<String> recommendations = SoilPredictionUtil.getRecommendedCrops(result.nitrogen, result.ph, result.soc);
+                currentPrediction.recommended_crops = TextUtils.join(", ", recommendations);
+                currentPrediction.overallScore = SoilPredictionUtil.calculateOverallScore(result.nitrogen, result.ph, result.soc);
+
+                showResults(currentPrediction);
+                lockPrediction();
+            } else {
+                Toast.makeText(this, "Prediction failed. Check Logs.", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Timber.e(e, "Prediction Error");
+            Toast.makeText(this, "Prediction error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void showResults(SoilTest test) {
         emptyPredictionContainer.setVisibility(View.GONE);
         resultsContainer.setVisibility(View.VISIBLE);
         parametersContainer.removeAllViews();
+
+        addParameterResult("SOC (Soil Organic Carbon)", String.format(Locale.US, "%.2f%%", test.soc), "soc", test.soc, 2.0);
+        addParameterResult("pH Level", String.format(Locale.US, "%.2f", test.ph), "ph", test.ph, 14);
+        addParameterResult("Nitrogen", String.format(Locale.US, "%.2f kg/ha", test.nitrogen), "nitrogen", test.nitrogen, 500);
+
+        showRecommendedCrops(test.recommended_crops);
+    }
+
+    private void showRecommendedCrops(String cropsCsv) {
         cropsChipGroup.removeAllViews();
-
-        addParameterResult("SOC", test.soc + "%", "soc", test.soc, 100);
-        addParameterResult("Nitrogen", test.nitrogen + " kg/ha", "nitrogen", test.nitrogen, 400);
-        addParameterResult("Phosphorus", test.phosphorus + " kg/ha", "phosphorus", test.phosphorus, 60);
-        addParameterResult("Potassium", test.potassium + " kg/ha", "potassium", test.potassium, 450);
-        addParameterResult("pH Level", String.valueOf(test.ph), "ph", test.ph, 14);
-
-        if (test.recommended_crops != null) {
-            for (String crop : test.recommended_crops.split(",")) {
-                addCropChip(crop.trim());
+        if (cropsCsv != null && !cropsCsv.isEmpty()) {
+            String[] crops = cropsCsv.split(",\\s*");
+            for (String crop : crops) {
+                Chip chip = new Chip(this);
+                chip.setText(crop);
+                chip.setChipBackgroundColorResource(R.color.bg_primary);
+                chip.setTextColor(ContextCompat.getColor(this, R.color.brand_green));
+                chip.setChipStrokeColorResource(R.color.brand_green);
+                chip.setChipStrokeWidth(2f);
+                cropsChipGroup.addView(chip);
             }
         }
     }
@@ -302,14 +382,18 @@ public class SoilTestActivity extends BaseActivity {
         nameTv.setText(name);
         statusTv.setText(status);
         valueTv.setText(valueDisplay);
-        progressBar.setProgress((int) ((value / max) * 100));
-        parametersContainer.addView(view);
-    }
+        
+        // Ensure progress is within 0-100
+        int progress = (int) ((value / max) * 100);
+        progressBar.setProgress(Math.max(0, Math.min(100, progress)));
 
-    private void addCropChip(String name) {
-        Chip chip = new Chip(this);
-        chip.setText(name);
-        cropsChipGroup.addView(chip);
+        if ("soc".equalsIgnoreCase(paramKey)) {
+            int color = SoilPredictionUtil.getSOCColor(status);
+            statusTv.setTextColor(color);
+            progressBar.getProgressDrawable().setTint(color);
+        }
+
+        parametersContainer.addView(view);
     }
 
     private void savePredictionToBackend() {
@@ -337,14 +421,10 @@ public class SoilTestActivity extends BaseActivity {
                 saveResultButton.setEnabled(true);
                 saveResultButton.setText("Save Result");
                 if (response.isSuccessful()) {
-                    Toast.makeText(SoilTestActivity.this, "Result saved successfully!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SoilTestActivity.this, "Result saved!", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
-                    String error = "Save failed: " + response.code();
-                    try (ResponseBody rb = response.errorBody()) {
-                        if (rb != null) error = rb.string();
-                    } catch (IOException ignored) {}
-                    Toast.makeText(SoilTestActivity.this, error, Toast.LENGTH_LONG).show();
+                    Toast.makeText(SoilTestActivity.this, "Save failed: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -352,8 +432,14 @@ public class SoilTestActivity extends BaseActivity {
             public void onFailure(Call<List<SoilTest>> call, Throwable t) {
                 saveResultButton.setEnabled(true);
                 saveResultButton.setText("Save Result");
-                Toast.makeText(SoilTestActivity.this, "Network error", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SoilTestActivity.this, "Network error while saving", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (analyzer != null) analyzer.close();
     }
 }

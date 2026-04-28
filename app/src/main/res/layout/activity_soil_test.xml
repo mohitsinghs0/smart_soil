@@ -143,7 +143,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
-                        android:text="Soil / Test-tube Image"
+                        android:text="Soil Image"
                         android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -153,9 +153,9 @@
                         android:id="@+id/soil_image_preview"
                         android:layout_width="match_parent"
                         android:layout_height="220dp"
+                        android:layout_marginBottom="12dp"
                         android:scaleType="centerCrop"
-                        android:visibility="gone"
-                        android:layout_marginBottom="12dp" />
+                        android:visibility="gone" />
 
                     <!-- Selection Options Container -->
                     <LinearLayout
@@ -201,36 +201,6 @@
                             android:layout_marginBottom="12dp"
                             android:background="#E0E0E0" />
 
-                        <!-- Recommended Badge -->
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="10dp"
-                            android:background="#E8F5E9"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingStart="10dp"
-                            android:paddingEnd="10dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp">
-
-                            <ImageView
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:layout_marginEnd="4dp"
-                                android:src="@drawable/ic_target"
-                                app:tint="#2E7D32" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Recommended"
-                                android:textColor="#2E7D32"
-                                android:textSize="11sp"
-                                android:textStyle="bold" />
-
-                        </LinearLayout>
-
                         <!-- Camera Button -->
                         <LinearLayout
                             android:id="@+id/camera_box"
@@ -246,7 +216,7 @@
                                 android:layout_width="28dp"
                                 android:layout_height="28dp"
                                 android:layout_marginEnd="10dp"
-                                android:src="@drawable/ic_target"
+                                android:src="@drawable/ic_camera"
                                 app:tint="#4CAF50" />
 
                             <LinearLayout
@@ -265,7 +235,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Auto-adjusts quality for best prediction"
+                                    android:text="Capture soil photo for prediction"
                                     android:textColor="#9E9E9E"
                                     android:textSize="11sp" />
 
@@ -317,7 +287,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:gravity="center"
-                        android:text="Select a farm &amp; upload a soil image to get predictions"
+                        android:text="Select a farm and upload image to get predictions"
                         android:textColor="@color/text_secondary"
                         android:textSize="15sp" />
                 </LinearLayout>

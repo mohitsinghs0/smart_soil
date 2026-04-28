@@ -8,6 +8,7 @@ import com.example.smart_soil.database.SmartSoilDatabase;
 import com.example.smart_soil.models.Farm;
 import com.example.smart_soil.services.ApiService;
 import com.example.smart_soil.services.RetrofitClient;
+import com.example.smart_soil.utils.SharedPrefsManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,19 +24,23 @@ public class FarmRepository {
     private final ApiService apiService;
     private final ExecutorService executor;
     private final String authToken;
-    private final Application application;
+    private final SharedPrefsManager prefsManager;
 
     public FarmRepository(Application application, String authToken) {
-        this.application = application;
         SmartSoilDatabase db = SmartSoilDatabase.getInstance(application);
         this.farmDao = db.farmDao();
         this.apiService = RetrofitClient.getApiService(application);
         this.executor = Executors.newSingleThreadExecutor();
         this.authToken = "Bearer " + authToken;
+        this.prefsManager = new SharedPrefsManager(application);
     }
 
     public void refreshFarms() {
-        apiService.getFarms(authToken).enqueue(new Callback<List<Farm>>() {
+        String userId = prefsManager.getUserId();
+        if (userId == null) return;
+
+        // Filtering by user_id to ensure privacy
+        apiService.getFarms(authToken, "eq." + userId).enqueue(new Callback<List<Farm>>() {
             @Override
             public void onResponse(Call<List<Farm>> call, Response<List<Farm>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -57,6 +62,7 @@ public class FarmRepository {
                                 farm.area != null ? farm.area : 0.0
                             );
                             entity.setServerId(serverId);
+                            entity.setUserId(userId); // Associate with current user
                             entity.setSynced(true);
                             
                             if (existing != null) {
@@ -77,12 +83,14 @@ public class FarmRepository {
         });
     }
 
-    public LiveData<List<FarmEntity>> getLocalFarms() {
-        return farmDao.getAllFarms();
+    public LiveData<List<FarmEntity>> getLocalFarms(String userId) {
+        return farmDao.getAllFarmsByUser(userId);
     }
 
     public void addFarm(FarmEntity farm) {
         executor.execute(() -> {
+            String userId = prefsManager.getUserId();
+            farm.setUserId(userId); // Set local userId before insert
             long localId = farmDao.insert(farm);
             
             Map<String, Object> farmData = new HashMap<>();
@@ -96,6 +104,7 @@ public class FarmRepository {
             farmData.put("lat", farm.getLatitude());
             farmData.put("lng", farm.getLongitude());
             farmData.put("area", farm.getArea());
+            farmData.put("user_id", userId); // Critical: Link farm to user
 
             apiService.createFarm(authToken, farmData).enqueue(new Callback<List<Farm>>() {
                 @Override

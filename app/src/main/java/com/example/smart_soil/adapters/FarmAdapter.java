@@ -11,6 +11,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.smart_soil.R;
 import com.example.smart_soil.database.FarmEntity;
 import com.example.smart_soil.databinding.ListItemFarmBinding;
+import com.example.smart_soil.models.WeatherResponse;
+import com.example.smart_soil.services.RetrofitClient;
+import com.example.smart_soil.services.SupabaseConfig;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import timber.log.Timber;
 
 public class FarmAdapter extends ListAdapter<FarmEntity, FarmAdapter.ViewHolder> {
 
@@ -53,12 +60,17 @@ public class FarmAdapter extends ListAdapter<FarmEntity, FarmAdapter.ViewHolder>
         public void bind(FarmEntity farm, OnFarmClickListener listener) {
             binding.farmName.setText(farm.getName());
             binding.farmLocation.setText(farm.getLocation());
-            
-            // Dummy data for weather to match original UI look
-            binding.weatherTemp.setText("27.1°C");
-            binding.weatherHumidity.setText("45%");
-            binding.weatherWind.setText("9.4 km/h");
             binding.lastTestInfo.setText("Last test: 09/03/2026 • " + farm.getCropType());
+
+            // Fetch live weather if coordinates are available
+            if (farm.getLatitude() != 0.0 && farm.getLongitude() != 0.0) {
+                fetchWeather(farm.getLatitude(), farm.getLongitude());
+            } else {
+                // Default/Fallback values if no GPS data
+                binding.weatherTemp.setText("--°C");
+                binding.weatherHumidity.setText("--%");
+                binding.weatherWind.setText("-- km/h");
+            }
 
             binding.getRoot().setOnClickListener(v -> listener.onFarmClick(farm));
             binding.testButton.setOnClickListener(v -> listener.onTestClick(farm));
@@ -81,6 +93,29 @@ public class FarmAdapter extends ListAdapter<FarmEntity, FarmAdapter.ViewHolder>
                 popup.show();
             });
         }
+
+        private void fetchWeather(double lat, double lon) {
+            RetrofitClient.getWeatherApiService().getCurrentWeather(
+                lat, lon, SupabaseConfig.WEATHER_API_KEY, "metric"
+            ).enqueue(new Callback<WeatherResponse>() {
+                @Override
+                public void onResponse(Call<WeatherResponse> call, Response<WeatherResponse> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        WeatherResponse weather = response.body();
+                        binding.weatherTemp.setText(String.format(java.util.Locale.getDefault(), "%.1f°C", weather.main.temp));
+                        binding.weatherHumidity.setText(String.format(java.util.Locale.getDefault(), "%d%%", weather.main.humidity));
+                        binding.weatherWind.setText(String.format(java.util.Locale.getDefault(), "%.1f km/h", weather.wind.speed * 3.6)); // Convert m/s to km/h
+                    } else {
+                        Timber.e("Weather API error: %d", response.code());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<WeatherResponse> call, Throwable t) {
+                    Timber.e(t, "Weather API call failed");
+                }
+            });
+        }
     }
 
     static class DiffCallback extends DiffUtil.ItemCallback<FarmEntity> {
@@ -94,7 +129,8 @@ public class FarmAdapter extends ListAdapter<FarmEntity, FarmAdapter.ViewHolder>
             return oldItem.getName().equals(newItem.getName()) &&
                    oldItem.getLocation().equals(newItem.getLocation()) &&
                    oldItem.getCropType().equals(newItem.getCropType()) &&
-                   oldItem.getServerId() != null && oldItem.getServerId().equals(newItem.getServerId());
+                   oldItem.getLatitude() == newItem.getLatitude() &&
+                   oldItem.getLongitude() == newItem.getLongitude();
         }
     }
 }

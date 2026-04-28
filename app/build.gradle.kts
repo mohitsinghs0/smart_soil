@@ -36,6 +36,7 @@ android {
     buildFeatures {
         buildConfig = true
         viewBinding = true
+        mlModelBinding = true
     }
     androidResources {
         noCompress += listOf("tflite")
@@ -64,14 +65,19 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     
+    // Google Play Services for Location
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+    
     // Room Database
     implementation("androidx.room:room-runtime:2.6.1")
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
 
-    // TensorFlow Lite
-    implementation("org.tensorflow:tensorflow-lite:2.14.0")
-    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+    // OpenCV
+    implementation(libs.opencv)
+
+    // LiteRT (New TensorFlow Lite) - Cleaned up to avoid duplicate class conflicts
+    implementation("com.google.ai.edge.litert:litert:2.1.4")
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

@@ -9,6 +9,7 @@ material = "1.11.0"
 springBoot = "3.2.3"
 dependencyManagement = "1.1.7"
 h2 = "2.2.224"
+opencv = "4.10.0"
 
 [libraries]
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
@@ -23,6 +24,7 @@ mysql-connector-j = { group = "com.mysql", name = "mysql-connector-j", version =
 h2 = { group = "com.h2database", name = "h2", version.ref = "h2" }
 lombok = { group = "org.projectlombok", name = "lombok", version = "1.18.30" }
 spring-boot-starter-test = { group = "org.springframework.boot", name = "spring-boot-starter-test" }
+opencv = { group = "org.opencv", name = "opencv", version.ref = "opencv" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
