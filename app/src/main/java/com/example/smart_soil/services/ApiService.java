@@ -33,9 +33,9 @@ public interface ApiService {
     @PUT("rest/v1/profiles")
     Call<Void> updateProfile(@Header("Authorization") String token, @Query("id") String userId, @Body User user);
     
-    // Farms (Added user_id filter to ensure privacy)
+    // Farms
     @GET("rest/v1/farms?select=*")
-    Call<List<Farm>> getFarms(@Header("Authorization") String token, @Query("user_id") String userId);
+    Call<List<Farm>> getFarms(@Header("Authorization") String token, @Query("user_id") String userIdFilter);
     
     @POST("rest/v1/farms")
     Call<List<Farm>> createFarm(@Header("Authorization") String token, @Body Map<String, Object> farm);
@@ -48,7 +48,10 @@ public interface ApiService {
     
     // Soil Tests
     @GET("rest/v1/soil_tests?select=*")
-    Call<List<SoilTest>> getSoilTests(@Header("Authorization") String token, @Query("farm_id") String farmId);
+    Call<List<SoilTest>> getSoilTests(@Header("Authorization") String token, @Query("farm_id") String farmIdFilter);
+
+    @GET("rest/v1/soil_tests?select=*")
+    Call<List<SoilTest>> getSoilTestsByUser(@Header("Authorization") String token, @Query("user_id") String userIdFilter);
     
     @POST("rest/v1/soil_tests")
     Call<List<SoilTest>> createSoilTest(@Header("Authorization") String token, @Body SoilTestRequest body);
@@ -68,10 +71,6 @@ public interface ApiService {
 
     @GET("rest/v1/ai_chat_messages?select=*")
     Call<List<AIChatMessage>> getAIChatMessages(@Header("Authorization") String token, @Query("session_id") String sessionId);
-
-    // Notifications
-    @GET("rest/v1/notifications?select=*")
-    Call<List<Map<String, Object>>> getNotifications(@Header("Authorization") String token);
 
     // Image Prediction
     @Multipart

@@ -72,6 +72,9 @@
             android:name=".activities.HistoryActivity"
             android:exported="false" />
         <activity
+            android:name=".activities.SoilTestDetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.AIChatActivity"
             android:exported="false" />
 

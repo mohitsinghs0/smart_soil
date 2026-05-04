@@ -65,13 +65,14 @@ public class SoilTestDetailActivity extends BaseActivity {
             startActivity(intent);
         });
         
-        // Hide buttons not needed in detail view (Save is already done)
+        // Hide buttons not needed in detail view
         findViewById(R.id.save_result_button).setVisibility(View.GONE);
         findViewById(R.id.view_history_button).setVisibility(View.GONE);
     }
 
     private void initViews() {
-        soilImage = findViewById(R.id.soil_image_detail);
+        // Now using the image view inside the shared results layout
+        soilImage = findViewById(R.id.result_soil_image);
         testIdTv = findViewById(R.id.detail_test_id);
         testDateTv = findViewById(R.id.detail_test_date);
         parametersContainer = findViewById(R.id.parameters_container);
@@ -83,12 +84,20 @@ public class SoilTestDetailActivity extends BaseActivity {
         testIdTv.setText("Test #" + soilTest.id);
         testDateTv.setText("Date: " + (soilTest.test_date != null ? soilTest.test_date : "N/A"));
 
+        // Make the image card visible in the shared results layout
+        View imageCard = findViewById(R.id.result_image_card);
+        if (imageCard != null) {
+            imageCard.setVisibility(View.VISIBLE);
+        }
+
         if (soilTest.image_path != null && !soilTest.image_path.isEmpty()) {
             String imageUrl = RetrofitClient.getBaseUrl() + "uploads/" + soilTest.image_path;
             Glide.with(this)
                     .load(imageUrl)
                     .placeholder(R.drawable.ic_sprout)
                     .into(soilImage);
+        } else {
+            soilImage.setImageResource(R.drawable.ic_sprout);
         }
 
         parametersContainer.removeAllViews();

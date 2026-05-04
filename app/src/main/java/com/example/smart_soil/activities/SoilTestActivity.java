@@ -348,11 +348,45 @@ public class SoilTestActivity extends BaseActivity {
         resultsContainer.setVisibility(View.VISIBLE);
         parametersContainer.removeAllViews();
 
+        // Show the captured image in the results section
+        View imageCard = findViewById(R.id.result_image_card);
+        ImageView resultIv = findViewById(R.id.result_soil_image);
+        if (imageCard != null && resultIv != null && selectedImageUri != null) {
+            imageCard.setVisibility(View.VISIBLE);
+            resultIv.setImageURI(selectedImageUri);
+            // Hide the initial preview to avoid redundancy
+            soilImagePreview.setVisibility(View.GONE);
+        }
+
         addParameterResult("SOC (Soil Organic Carbon)", String.format(Locale.US, "%.2f%%", test.soc), "soc", test.soc, 2.0);
         addParameterResult("pH Level", String.format(Locale.US, "%.2f", test.ph), "ph", test.ph, 14);
         addParameterResult("Nitrogen", String.format(Locale.US, "%.2f kg/ha", test.nitrogen), "nitrogen", test.nitrogen, 500);
 
         showRecommendedCrops(test.recommended_crops);
+        updateSocDiagram(test.soc);
+    }
+
+    private void updateSocDiagram(double soc) {
+        View low = findViewById(R.id.container_soc_low);
+        View medium = findViewById(R.id.container_soc_medium);
+        View sufficient = findViewById(R.id.container_soc_sufficient);
+
+        if (low == null || medium == null || sufficient == null) return;
+
+        // Reset alphas to dimmed state
+        low.setAlpha(0.2f);
+        medium.setAlpha(0.2f);
+        sufficient.setAlpha(0.2f);
+
+        // Highlight based on value using prediction utility
+        String status = SoilPredictionUtil.getStatus("soc", soc);
+        if ("Low".equalsIgnoreCase(status)) {
+            low.setAlpha(1.0f);
+        } else if ("Medium".equalsIgnoreCase(status)) {
+            medium.setAlpha(1.0f);
+        } else if ("Sufficient".equalsIgnoreCase(status)) {
+            sufficient.setAlpha(1.0f);
+        }
     }
 
     private void showRecommendedCrops(String cropsCsv) {

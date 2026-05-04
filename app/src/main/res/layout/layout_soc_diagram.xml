@@ -28,7 +28,7 @@
             android:baselineAligned="false"
             android:orientation="horizontal">
 
-            <!-- Sufficient (> 1.0%) -->
+            <!-- Sufficient (> 1.0%) - Darker/Rich Soil -->
             <LinearLayout
                 android:id="@+id/container_soc_sufficient"
                 android:layout_width="0dp"
@@ -43,10 +43,11 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:gravity="center_horizontal">
-                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#212121" android:layout_marginBottom="4dp"/>
-                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#3E2723" android:layout_marginBottom="4dp"/>
-                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#4E342E" android:layout_marginBottom="4dp"/>
-                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#5D4037" />
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#1B0D07" android:layout_marginBottom="2dp"/>
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#26140D" android:layout_marginBottom="2dp"/>
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#331B12" android:layout_marginBottom="2dp"/>
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#3D2018" android:layout_marginBottom="2dp"/>
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#47261D" />
                 </LinearLayout>
 
                 <TextView
@@ -54,18 +55,18 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Sufficient"
-                    android:textColor="#2E7D32"
+                    android:textColor="#1B5E20"
                     android:textStyle="bold"
                     android:textSize="12sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="> 1.0%"
-                    android:textColor="#2E7D32"
+                    android:textColor="#1B5E20"
                     android:textSize="11sp"/>
             </LinearLayout>
 
-            <!-- Medium (0.5 - 1.0%) -->
+            <!-- Medium (0.5 - 1.0%) - Reddish/Brown -->
             <LinearLayout
                 android:id="@+id/container_soc_medium"
                 android:layout_width="0dp"
@@ -80,10 +81,11 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:gravity="center_horizontal">
-                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#8B4513" android:layout_marginBottom="4dp"/>
-                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#A0522D" android:layout_marginBottom="4dp"/>
-                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#A52A2A" android:layout_marginBottom="4dp"/>
-                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#D2691E" />
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#5D2E1A" android:layout_marginBottom="2dp"/>
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#723921" android:layout_marginBottom="2dp"/>
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#8B4513" android:layout_marginBottom="2dp"/>
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#A0522D" android:layout_marginBottom="2dp"/>
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#B25D38" />
                 </LinearLayout>
 
                 <TextView
@@ -91,18 +93,18 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Medium"
-                    android:textColor="#C62828"
+                    android:textColor="#B71C1C"
                     android:textStyle="bold"
                     android:textSize="12sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="0.5-1.0%"
-                    android:textColor="#C62828"
+                    android:textColor="#B71C1C"
                     android:textSize="11sp"/>
             </LinearLayout>
 
-            <!-- Low (< 0.5%) -->
+            <!-- Low (< 0.5%) - Light/Sandy -->
             <LinearLayout
                 android:id="@+id/container_soc_low"
                 android:layout_width="0dp"
@@ -117,10 +119,11 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:gravity="center_horizontal">
-                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#CD853F" android:layout_marginBottom="4dp"/>
-                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#DEB887" android:layout_marginBottom="4dp"/>
-                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#F4A460" android:layout_marginBottom="4dp"/>
-                    <View android:layout_width="50dp" android:layout_height="25dp" android:background="#FFCC80" />
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#CD853F" android:layout_marginBottom="2dp"/>
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#D29154" android:layout_marginBottom="2dp"/>
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#DAA06D" android:layout_marginBottom="2dp"/>
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#E3AF82" android:layout_marginBottom="2dp"/>
+                    <View android:layout_width="60dp" android:layout_height="18dp" android:background="#EDC9AF" />
                 </LinearLayout>
 
                 <TextView
@@ -128,14 +131,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Low"
-                    android:textColor="#FF8F00"
+                    android:textColor="#E65100"
                     android:textStyle="bold"
                     android:textSize="12sp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="&lt; 0.5%"
-                    android:textColor="#FF8F00"
+                    android:textColor="#E65100"
                     android:textSize="11sp"/>
             </LinearLayout>
 

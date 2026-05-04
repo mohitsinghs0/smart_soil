@@ -6,6 +6,28 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
+    <!-- Soil Image Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/result_image_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="2dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:id="@+id/result_soil_image"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_sprout" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- SOC Color Diagram Card -->
+    <include layout="@layout/layout_soc_diagram" />
+
     <!-- Predicted Parameters Card -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"

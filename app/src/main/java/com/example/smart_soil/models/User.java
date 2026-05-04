@@ -10,6 +10,10 @@ public class User implements Serializable {
     public String gender;
     public String token;
     public boolean isActive;
+    public String address;
+    public String state;
+    public String pincode;
+    public String farm_count;
     public long created_at;
 
     public User() {}

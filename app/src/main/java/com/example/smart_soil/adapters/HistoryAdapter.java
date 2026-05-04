@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.smart_soil.R;
-import com.example.smart_soil.activities.AIChatActivity;
+import com.example.smart_soil.activities.SoilTestDetailActivity;
 import com.example.smart_soil.models.SoilTest;
 import com.example.smart_soil.services.RetrofitClient;
 
@@ -43,7 +43,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         SoilTest test = testList.get(position);
 
         holder.idLabel.setText("Test #" + test.id); 
-        holder.testDate.setText(test.test_date != null ? test.test_date : "N/A");
+        holder.testDate.setText(test.test_date != null ? test.test_date : (test.created_at != null ? test.created_at : "N/A"));
         
         String crops = test.recommended_crops != null ? test.recommended_crops : "N/A";
         String values = String.format(Locale.getDefault(),
@@ -80,9 +80,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         }
 
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, AIChatActivity.class);
-            // Fix: Pass ID as Long explicitly
-            intent.putExtra("soil_test_id", (long) test.id);
+            Intent intent = new Intent(context, SoilTestDetailActivity.class);
+            intent.putExtra("soil_test", test);
             context.startActivity(intent);
         });
     }
@@ -107,5 +106,3 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         }
     }
 }
-
-

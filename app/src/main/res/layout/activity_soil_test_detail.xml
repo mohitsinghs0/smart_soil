@@ -36,22 +36,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Soil Image Preview -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp">
-
-                <ImageView
-                    android:id="@+id/soil_image_detail"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_sprout" />
-            </com.google.android.material.card.MaterialCardView>
-
             <!-- Test Info Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -86,7 +70,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Results Container (Reusing includes) -->
+            <!-- Results Container (Reusing includes, now contains soil image card at top) -->
             <include layout="@layout/layout_soil_test_results" />
 
             <!-- AI Expert Quick Link -->

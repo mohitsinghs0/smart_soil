@@ -2,20 +2,18 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/primary"
+    android:background="@color/brand_dark_green"
     android:gravity="center"
     android:orientation="vertical">
 
     <!-- Logo -->
     <ImageView
         android:id="@+id/splash_logo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:layout_marginBottom="24dp"
-        android:background="@drawable/rounded_square_bg"
         android:contentDescription="@string/app_name"
-        android:padding="20dp"
-        android:src="@drawable/ic_sprout" />
+        android:src="@drawable/ic_app_logo" />
 
     <!-- App Name -->
     <TextView
@@ -48,7 +46,7 @@
         android:layout_height="60dp"
         android:layout_marginTop="40dp"
         android:indeterminate="true"
-        android:indeterminateTint="@color/accent"
+        android:indeterminateTint="@color/brand_gold"
         android:indeterminateTintMode="src_in"
         style="?android:attr/progressBarStyle" />
 </LinearLayout>
